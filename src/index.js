@@ -1,3 +1,15 @@
-export default function () {
-  console.log('version ' + '1.0.0')
+class SMap {
+  constructor (value) {
+    this.value_ = value
+  }
+
+  /**
+   * 获取值
+   * @returns {*}
+   */
+  getValue () {
+    return this.value_
+  }
 }
+
+export default SMap
