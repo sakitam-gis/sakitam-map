@@ -1,15 +1,4 @@
-class SMap {
-  constructor (value) {
-    this.value_ = value
-  }
+import * as Utils from './utils'
+import Map from './map'
 
-  /**
-   * 获取值
-   * @returns {*}
-   */
-  getValue () {
-    return this.value_
-  }
-}
-
-export default SMap
+export { Utils, Map }

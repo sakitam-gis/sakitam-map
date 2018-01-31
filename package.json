@@ -1,12 +1,13 @@
 {
   "name": "sakitam-map",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "a light and powerfull map enginer",
   "main": "dist/sakitam-map.common.js",
   "module": "dist/sakitam-map.esm.js",
   "unpkg": "dist/sakitam-map.js",
   "style": "dist/sakitam-map.css",
   "author": "FDD <smileFDD@gmail.com>",
+  "homepage": "https://sakitam-fdd.github.io/sakitam-map",
   "namespace": "SMap",
   "private": true,
   "license": "BSD-3-Clause",
@@ -26,8 +27,8 @@
     "url": "https://gitee.com/smileFDD/sakitam-map/issues"
   },
   "scripts": {
-    "dev": "rollup -wm -c build/development.js",
-    "build": "node build/build.js"
+    "dev": "rollup -wm -c build/rollup-dev-config.js",
+    "build": "node build/rollup-prod-config.js"
   },
   "dependencies": {},
   "devDependencies": {
