@@ -1,4 +1,4 @@
-import { trim, camelCase } from './common'
+import { trim, camelCase, isString } from './common'
 
 /**
  * core create canvas
@@ -52,6 +52,21 @@ const getElement = function (selector) {
       )
   })()
   return dom
+}
+
+/**
+ * get target
+ * @param content
+ * @returns {*}
+ */
+const getTarget = (content) => {
+  if (content instanceof Element) {
+    return content
+  } else if (isString(content)) {
+    return document.getElementById(content)
+  } else {
+    throw new Error('Invalid map container!')
+  }
 }
 
 /**
@@ -200,6 +215,7 @@ const setStyle = (element, styleName, value) => {
 export {
   create,
   createCanvas,
+  getTarget,
   getElement,
   remove,
   empty,
