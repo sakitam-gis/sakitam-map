@@ -1,18 +1,26 @@
-import { merge, createCanvas } from '../utils'
+import { createCanvas } from '../utils'
 
 const _options = {
-  radius: 8,
+  radius: 25,
   blur: 15,
   shadow: 250,
+  minOpacity: 0.05,
   gradient: ['#00f', '#0ff', '#0f0', '#ff0', '#f00']
 }
 
 class HeatLayer {
   constructor (points, options = {}) {
-    this.options = merge({}, _options, options)
+    this.options = Object.assign(_options, options)
     if (points && points.length > 0) {
       this.setData(points)
     }
+
+    /**
+     * max value
+     * @type {number}
+     * @private
+     */
+    this._maxValue = 18
   }
 
   /**
@@ -30,7 +38,26 @@ class HeatLayer {
    */
   setData (_points = []) {
     this._points = _points;
-    this._render()
+    this.handleRender_()
+    return this;
+  }
+
+  /**
+   * add point
+   * @param point
+   * @returns {HeatLayer}
+   */
+  add (point) {
+    this._points.push(point);
+    return this;
+  }
+
+  /**
+   * clear layer data
+   * @returns {HeatLayer}
+   */
+  clear () {
+    this._points = [];
     return this;
   }
 
@@ -40,6 +67,8 @@ class HeatLayer {
    */
   setBlur (blur) {
     this.options.blur = blur
+    this.handleRadiusChanged_()
+    this.handleGradientChanged_()
   }
 
   /**
@@ -56,6 +85,8 @@ class HeatLayer {
    */
   setGradient (colors) {
     this.options.gradient = colors
+    this.handleRadiusChanged_()
+    this.handleGradientChanged_()
   }
 
   /**
@@ -72,6 +103,8 @@ class HeatLayer {
    */
   setRadius (radius) {
     this.options.radius = radius
+    this.handleRadiusChanged_()
+    this.handleGradientChanged_()
   }
 
   /**
@@ -83,24 +116,23 @@ class HeatLayer {
   }
 
   /**
-   * creat heat
-   * @returns {string}
+   * handle radius change
    * @private
    */
-  createHeat_ () {
+  handleRadiusChanged_ () {
     const radius = this.getRadius();
     const blur = this.getBlur();
     const halfSize = radius + blur + 1;
     const size = 2 * halfSize;
-    const context = createCanvas(size, size);
-    context.shadowOffsetX = context.shadowOffsetY = this.shadow_;
+    const canvas = this._circle = createCanvas(size, size)
+    const context = canvas.getContext('2d');
+    context.shadowOffsetX = context.shadowOffsetY = size;
     context.shadowBlur = blur;
     context.shadowColor = '#000';
     context.beginPath();
-    const center = halfSize - this.shadow_;
-    context.arc(center, center, radius, 0, Math.PI * 2, true);
+    context.arc(-halfSize, -halfSize, radius, 0, Math.PI * 2, true);
+    context.closePath()
     context.fill();
-    return context.canvas.toDataURL();
   }
 
   /**
@@ -112,8 +144,18 @@ class HeatLayer {
   }
 
   handleRender_ () {
-    const context = this.options.canvas;
+    if (!this._circle) this.setRadius(this.options.radius);
+    if (!this.gradient_) this.setGradient(this.options.gradient);
+    const context = this.options.context;
     const canvas = context.canvas;
+    const radius = this.getRadius();
+    const blur = this.getBlur();
+    const _rb = radius + blur
+    for (let i = 0, len = this._points.length, point; i < len; i++) {
+      point = this._points[i];
+      context.globalAlpha = Math.min(Math.max(point[2] / this._maxValue, this.options.minOpacity), 1);
+      context.drawImage(this._circle, point[0] - _rb, point[1] - _rb)
+    }
     const image = context.getImageData(0, 0, canvas.width, canvas.height);
     const _imgData = image.data;
     for (let i = 0, ii = _imgData.length; i < ii; i += 4) {
@@ -128,20 +170,14 @@ class HeatLayer {
   }
 
   /**
-   * render
-   * @private
+   * creat gradient color
+   * @param colors
+   * @returns {Uint8ClampedArray}
    */
-  _render () {
-    this.setGradient(this.options.gradient)
-    this.setBlur(this.options.blur)
-    this.setRadius(this.options.radius)
-    this.handleRender_()
-  }
-
   static createGradient = function (colors) {
     const width = 1;
     const height = 256;
-    const context = createCanvas(width, height);
+    const context = createCanvas(width, height).getContext('2d');
     // 创建线性的渐变对象 from `https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/createLinearGradient`
     const gradient = context.createLinearGradient(0, 0, width, height);
     const step = 1 / (colors.length - 1);

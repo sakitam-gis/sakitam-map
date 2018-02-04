@@ -8,13 +8,18 @@ import { trim, camelCase, isString } from './common'
  * @returns {HTMLCanvasElement}
  */
 const createCanvas = function (width, height, scaleFactor) {
-  const canvas = document.createElement('canvas')
-  canvas.width = width * scaleFactor
-  canvas.height = height * scaleFactor
-  canvas.style.width = width + 'px'
-  canvas.style.height = height + 'px'
-  canvas.getContext('2d').scale(scaleFactor, scaleFactor)
-  return canvas
+  if (typeof document !== 'undefined') {
+    const canvas = document.createElement('canvas')
+    canvas.width = width * scaleFactor
+    canvas.height = height * scaleFactor
+    canvas.style.width = width + 'px'
+    canvas.style.height = height + 'px'
+    canvas.getContext('2d').scale(scaleFactor, scaleFactor)
+    return canvas
+  } else {
+    // create a new canvas instance in node.js
+    // the canvas class needs to have a default constructor without any parameter
+  }
 }
 
 /**
