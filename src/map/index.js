@@ -2,7 +2,6 @@ import { create, setStyle, getTarget } from '../utils'
 
 class SMap {
   constructor (target, options = {}) {
-
     /**
      * layer group
      * @type {Array}
