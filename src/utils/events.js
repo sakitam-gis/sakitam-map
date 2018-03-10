@@ -1,43 +1,83 @@
-/**
- * bind event
- */
-const on = (function () {
-  if (document.addEventListener) {
-    return function (element, event, handler) {
-      if (element && event && handler) {
-        element.addEventListener(event, handler, false)
-      }
-    }
-  }
-})()
+import { stamp } from './common'
 
 /**
- * unbind event
- */
-const off = (function () {
-  if (document.removeEventListener) {
-    return function (element, event, handler) {
-      if (element && event) {
-        element.removeEventListener(event, handler, false)
-      }
-    }
-  }
-})()
-
-/**
- * bind event once
- * @param el
- * @param event
+ * 获取事件唯一标识
+ * @param type
  * @param fn
+ * @param context
+ * @returns {string}
  */
-const once = function (el, event, fn) {
-  const listener = function () {
-    if (fn) {
-      fn.apply(this, arguments)
+const getDomEventKey = (type, fn, context) => {
+  return '_dom_event_' + type + '_' + stamp(fn) + (context ? '_' + stamp(context) : '')
+}
+
+/**
+ * 对DOM对象添加事件监听
+ * @param element
+ * @param type
+ * @param fn
+ * @param context
+ * @param isOnce
+ * @returns {*}
+ */
+const addListener = function (element, type, fn, context, isOnce) {
+  let eventKey = getDomEventKey(type, fn, context)
+  let handler = element[eventKey]
+  if (handler) {
+    if (!isOnce) {
+      handler.callOnce = false
     }
-    off(el, event, listener)
+    return this
   }
-  on(el, event, listener)
+  handler = function (e) {
+    return fn.call(context || element, e)
+  }
+  if ('addEventListener' in element) {
+    element.addEventListener(type, handler, false)
+  } else if ('attachEvent' in element) {
+    element.attachEvent('on' + type, handler)
+  }
+  element[eventKey] = handler
+  return this
+}
+
+const on = addListener;
+
+/**
+ * 移除DOM对象监听事件
+ * @param element
+ * @param type
+ * @param fn
+ * @param context
+ * @returns {removeListener}
+ */
+const removeListener = function (element, type, fn, context) {
+  let eventKey = getDomEventKey(type, fn, context)
+  let handler = element[eventKey]
+  if (!handler) {
+    return this
+  }
+  if ('removeEventListener' in element) {
+    element.removeEventListener(type, handler, false)
+  } else if ('detachEvent' in element) {
+    element.detachEvent('on' + type, handler)
+  }
+  element[eventKey] = null
+  return this
+}
+
+const off = removeListener;
+
+/**
+ * attach events once
+ * @param element
+ * @param type
+ * @param fn
+ * @param context
+ * @returns {*}
+ */
+const once = function (element, type, fn, context) {
+  return addListener(element, type, fn, context, true)
 }
 
 /**
@@ -71,7 +111,9 @@ const stopPropagation = function (event) {
 export {
   on,
   once,
+  addListener,
   off,
+  removeListener,
   preventDefault,
   stopPropagation
 }

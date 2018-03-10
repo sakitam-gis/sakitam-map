@@ -1,4 +1,4 @@
-import { create, setStyle, getTarget } from '../utils'
+import { create, setStyle, getTarget, on, off } from '../utils'
 
 class SMap {
   constructor (target, options = {}) {
@@ -41,6 +41,15 @@ class SMap {
      */
     this._target = getTarget(target)
     this._target.appendChild(this.viewport_)
+    on(this.viewport_, 'contextmenu', this.handleBrowserEvent, this);
+    on(this.viewport_, 'wheel', this.handleBrowserEvent, this);
+    on(this.viewport_, 'mousewheel', this.handleBrowserEvent, this)
+  }
+
+  disposeInternal () {
+    off(this.viewport_, 'contextmenu', this.handleBrowserEvent, this);
+    off(this.viewport_, 'wheel', this.handleBrowserEvent, this);
+    off(this.viewport_, 'mousewheel', this.handleBrowserEvent, this)
   }
 
   /**
@@ -95,6 +104,16 @@ class SMap {
     }
     const layers = this.getLayerGroup().getLayers();
     return layers.remove(layer);
+  }
+
+  /**
+   * handle event
+   * @param browserEvent
+   * @param _type
+   */
+  handleBrowserEvent (browserEvent, _type) {
+    const type = _type || browserEvent.type;
+    console.log(type, this)
   }
 }
 
