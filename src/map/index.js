@@ -1,13 +1,21 @@
-import { create, setStyle, getTarget, on, off } from '../utils'
+import { create, setStyle, getTarget, on, off, isNull } from '../utils'
+import CanvasMapRenderer from '../render/canvas/Map'
+import Observable from '../events/Observable';
 
-class SMap {
+class Map extends Observable {
   constructor (target, options = {}) {
+    super()
     /**
      * layer group
      * @type {Array}
      * @private
      */
     this._layerGroup = []
+
+    /**
+     * target id
+     */
+    this._id = target;
     this._createContent(target)
   }
 
@@ -18,7 +26,7 @@ class SMap {
    */
   _createContent (target) {
     this.viewport_ = create('div', 'sakitam-map-container');
-    this.layersContent_ = create('div', 'sakitam-map-container-layers', this.viewport_)
+    this.layersContent_ = create('div', 'sakitam-map-layers', this.viewport_)
     setStyle(this.viewport_, {
       position: 'relative',
       overflow: 'hidden',
@@ -39,11 +47,63 @@ class SMap {
      * @type {*}
      * @private
      */
-    this._target = getTarget(target)
-    this._target.appendChild(this.viewport_)
+    this._target = getTarget(target);
+    this._target.appendChild(this.viewport_);
+    this._initRender(target);
     on(this.viewport_, 'contextmenu', this.handleBrowserEvent, this);
     on(this.viewport_, 'wheel', this.handleBrowserEvent, this);
     on(this.viewport_, 'mousewheel', this.handleBrowserEvent, this)
+  }
+
+  /**
+   * get map size
+   * @returns {*}
+   */
+  getSize () {
+    if (!this.viewport_) {
+      return null;
+    }
+    const container_ = this.viewport_;
+    let width, height;
+    if (!isNull(container_.width) && !isNull(container_.height)) {
+      width = container_.width;
+      height = container_.height;
+    } else if (!isNull(container_.clientWidth) && !isNull(container_.clientHeight)) {
+      width = parseInt(container_.clientWidth, 0);
+      height = parseInt(container_.clientHeight, 0);
+    } else {
+      throw new Error('can not get size of container');
+    }
+    return [width, height];
+  }
+
+  /**
+   * init render
+   * @param target
+   * @private
+   */
+  _initRender (target) {
+    const renderer = CanvasMapRenderer.create(this.layersContent_, this);
+    this.dispatch('load', renderer);
+  }
+
+  /**
+   * set map cursor
+   * @param cursor
+   * @returns {Map}
+   */
+  setCursor (cursor) {
+    delete this._cursor;
+    this._cursor = cursor;
+    return this;
+  }
+
+  /**
+   * Reset map's cursor style.
+   * @returns {*}
+   */
+  resetCursor () {
+    return this.setCursor(null);
   }
 
   disposeInternal () {
@@ -117,4 +177,4 @@ class SMap {
   }
 }
 
-export default SMap
+export default Map

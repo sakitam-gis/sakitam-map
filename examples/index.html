@@ -22,6 +22,9 @@
     center: [113.53450137499999, 34.44104525],
     zoom: 2
   });
+  map.on('load', function (event, data) {
+    console.log(event, data)
+  })
   var coordOrign = smap.proj.fromLonLat([113.53450137499999, 34.44104525]);
   var coordOrign_ = smap.proj.toLonLat(coordOrign);
   console.log(coordOrign, coordOrign_)

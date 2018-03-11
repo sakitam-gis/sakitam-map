@@ -39,7 +39,7 @@ const stamp = function (obj) {
  * @param obj
  * @returns {boolean}
  */
-const isNaN = (obj) => {
+const isNull = (obj) => {
   return obj == null;
 }
 
@@ -173,7 +173,7 @@ export {
   uuid,
   merge,
   trim,
-  isNaN,
+  isNull,
   isEmpty,
   isString,
   isObject,
