@@ -1,3 +1,4 @@
+import { isEmpty } from '../utils'
 const transforms = {};
 
 /**
@@ -17,6 +18,23 @@ function add (source, destination, transformFn) {
 }
 
 /**
+ * remove cached projection
+ * @param source
+ * @param destination
+ * @returns {*}
+ */
+function remove (source, destination) {
+  const sourceCode = source.getCode();
+  const destinationCode = destination.getCode();
+  const transform = transforms[sourceCode][destinationCode];
+  delete transforms[sourceCode][destinationCode];
+  if (isEmpty(transforms[sourceCode])) {
+    delete transforms[sourceCode];
+  }
+  return transform;
+}
+
+/**
  * Get a transform given a source code and a destination code.
  * @param sourceCode
  * @param destinationCode
@@ -32,5 +50,6 @@ function get (sourceCode, destinationCode) {
 
 export {
   add,
-  get
+  get,
+  remove
 }

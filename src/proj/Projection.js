@@ -39,12 +39,6 @@ class Projection {
 
     /**
      * @private
-     * @type {boolean}
-     */
-    this.canWrapX_ = !!(this.global_ && this.extent_);
-
-    /**
-     * @private
      * @type {function(number):number|undefined}
      */
     this.getPointResolutionFunc_ = options.getPointResolution;
@@ -60,10 +54,6 @@ class Projection {
      * @type {number|undefined}
      */
     this.metersPerUnit_ = options.metersPerUnit;
-  }
-
-  canWrapX () {
-    return this.canWrapX_;
   }
 
   getCode () {
@@ -96,7 +86,6 @@ class Projection {
 
   setGlobal (global) {
     this.global_ = global;
-    this.canWrapX_ = !!(global && this.extent_);
   }
 
   getDefaultTileGrid () {
@@ -109,7 +98,6 @@ class Projection {
 
   setExtent (extent) {
     this.extent_ = extent;
-    this.canWrapX_ = !!(this.global_ && extent);
   }
 
   setWorldExtent (worldExtent) {

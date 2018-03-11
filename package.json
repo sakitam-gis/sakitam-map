@@ -8,7 +8,7 @@
   "style": "dist/sakitam-map.css",
   "author": "FDD <smileFDD@gmail.com>",
   "homepage": "https://sakitam-fdd.github.io/sakitam-map",
-  "namespace": "SMap",
+  "namespace": "smap",
   "private": true,
   "license": "BSD-3-Clause",
   "keywords": [

@@ -11,7 +11,20 @@ const _options = {
 };
 
 class EPSG3857 extends Projection {
-  static fromEPSG4326 = function (input, output, dimension) {
+  constructor (code) {
+    super({
+      code: code,
+      units: Units.METERS,
+      extent: _options.EXTENT,
+      global: true,
+      worldExtent: _options.WORLD_EXTENT,
+      getPointResolution: function (resolution, point) {
+        return resolution / cosh(point[1] / RADIUS);
+      }
+    })
+  }
+
+  project (input, output, dimension) {
     const length = input.length;
     const _dimension = dimension > 1 ? dimension : 2;
     if (output === undefined) {
@@ -34,7 +47,8 @@ class EPSG3857 extends Projection {
     }
     return output;
   }
-  static toEPSG4326 = function (input, output, dimension) {
+
+  unproject (input, output, dimension) {
     const length = input.length;
     const _dimension = dimension > 1 ? dimension : 2;
     if (output === undefined) {
@@ -50,18 +64,8 @@ class EPSG3857 extends Projection {
     }
     return output;
   }
-  constructor (code) {
-    super({
-      code: code,
-      units: Units.METERS,
-      extent: _options.EXTENT,
-      global: true,
-      worldExtent: _options.WORLD_EXTENT,
-      getPointResolution: function (resolution, point) {
-        return resolution / cosh(point[1] / RADIUS);
-      }
-    })
-  }
 }
 
-export default EPSG3857
+export {EPSG3857}
+
+export default new EPSG3857('EPSG:3857')

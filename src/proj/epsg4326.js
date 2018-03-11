@@ -19,4 +19,6 @@ class EPSG4326 extends Projection {
   }
 }
 
-export default EPSG4326
+export {EPSG4326}
+
+export default new EPSG4326('EPSG:4326')

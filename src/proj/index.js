@@ -3,7 +3,9 @@ import { Units, METERS_PER_UNIT } from './constants';
 import { modulo } from '../utils';
 import { getDistance } from './Sphere';
 import { applyTransform } from './extent';
-import {get as getTransformFunc} from './transforms';
+import {get as getTransformFunc, add as addTransformFunc} from './transforms';
+import EPSG3857 from './epsg3857'
+import EPSG4326 from './epsg4326'
 
 const projections = {
   projections: {},
@@ -14,6 +16,26 @@ const projections = {
     return this.projections[code] || null;
   }
 };
+
+/**
+ * clone data
+ * @param input
+ * @param _output
+ * @param _dimension
+ * @returns {*}
+ */
+const cloneTransform = (input, _output, _dimension) => {
+  let output;
+  if (_output !== undefined) {
+    for (let i = 0, ii = input.length; i < ii; ++i) {
+      _output[i] = input[i];
+    }
+    output = _output;
+  } else {
+    output = input.slice();
+  }
+  return output;
+}
 
 /**
  * @param {Array.<number>} input Input coordinate array.
@@ -37,6 +59,7 @@ const identityTransform = function (input, output, dimension) {
  */
 const addProjection = function (projection) {
   projections.add(projection.getCode(), projection);
+  addTransformFunc(projection, projection, cloneTransform);
 };
 
 /**
@@ -100,23 +123,19 @@ const getPointResolution = function (projection, resolution, point, units) {
 /**
  * Transforms a coordinate from longitude/latitude to a different projection.
  * @param coordinate
- * @param projection
  * @returns {*}
  */
-const fromLonLat = function (coordinate, projection) {
-  return transform(coordinate, 'EPSG:4326',
-    projection !== undefined ? projection : 'EPSG:3857');
+const fromLonLat = function (coordinate) {
+  return get('EPSG:3857').project(coordinate);
 };
 
 /**
  * Transforms a coordinate to longitude/latitude.
  * @param coordinate
- * @param projection
  * @returns {*}
  */
-const toLonLat = function (coordinate, projection) {
-  const lonLat = transform(coordinate,
-    projection !== undefined ? projection : 'EPSG:3857', 'EPSG:4326');
+const toLonLat = function (coordinate) {
+  const lonLat = get('EPSG:3857').unproject(coordinate);
   const lon = lonLat[0];
   if (lon < -180 || lon > 180) {
     lonLat[0] = modulo(lon + 180, 360) - 180;
@@ -178,6 +197,9 @@ const transformExtent = function (extent, source, destination) {
   const transformFunc = getTransform(source, destination);
   return applyTransform(extent, transformFunc);
 };
+
+addProjection(EPSG3857);
+addProjection(EPSG4326);
 
 export {
   get,

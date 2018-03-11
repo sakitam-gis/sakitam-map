@@ -154,6 +154,19 @@ const merge = (target) => {
   return target
 };
 
+/**
+ * check isEmpty object
+ * @param object
+ * @returns {boolean}
+ */
+const isEmpty = (object) => {
+  let property;
+  for (property in object) {
+    return false;
+  }
+  return !property;
+};
+
 export {
   IS_NODE,
   stamp,
@@ -161,6 +174,7 @@ export {
   merge,
   trim,
   isNaN,
+  isEmpty,
   isString,
   isObject,
   isNumber,
