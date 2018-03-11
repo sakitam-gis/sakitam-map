@@ -1,5 +1,6 @@
-import * as Utils from './utils'
+import * as utils from './utils'
 import Map from './map'
-import * as Layer from './layer'
+import * as layer from './layer'
+import * as proj from './proj'
 
-export { Utils, Map, Layer }
+export { utils, Map, layer, proj }
