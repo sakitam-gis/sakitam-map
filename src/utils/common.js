@@ -135,6 +135,48 @@ const uuid = (options, buf, offset) => {
 };
 
 /**
+ * 判断是否为表单数据
+ * @param val
+ * @returns {boolean}
+ */
+const isFormData = (val) => {
+  return (typeof FormData !== 'undefined') && (val instanceof FormData)
+};
+
+/**
+ * 编码请求地址
+ * @param val
+ * @returns {string}
+ */
+const encode = (val) => {
+  return encodeURIComponent(val)
+    .replace(/%40/gi, '@')
+    .replace(/%3A/gi, ':')
+    .replace(/%24/g, '$')
+    .replace(/%2C/gi, ',')
+    .replace(/%20/g, '+')
+    .replace(/%5B/gi, '[')
+    .replace(/%5D/gi, ']')
+}
+
+/**
+ * 格式化请求参数
+ * @param data
+ * @returns {string}
+ */
+const formatParams = (data) => {
+  let arr = []
+  for (let name in data) {
+    let value = data[name]
+    if (isObject(value)) {
+      value = JSON.stringify(value)
+    }
+    arr.push(encode(name) + '=' + encode(value))
+  }
+  return arr.join('&')
+}
+
+/**
  * merge
  * @param target
  * @returns {*}
@@ -178,5 +220,7 @@ export {
   isString,
   isObject,
   isNumber,
-  camelCase
+  camelCase,
+  isFormData,
+  formatParams
 }
