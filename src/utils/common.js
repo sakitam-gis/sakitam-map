@@ -2,7 +2,8 @@
  * from https://github.com/iliakan/detect-node
  * @type {boolean}
  */
-const IS_NODE = Object.prototype.toString.call(typeof process !== 'undefined' ? process : 0) === '[object process]' && !process.versions['electron'] && !process.versions['nw'] && !process.versions['node-webkit'];
+const isNode = Object.prototype.toString.call(typeof process !== 'undefined' ? process : 0) === '[object process]' && !process.versions['electron'] && !process.versions['nw'] && !process.versions['node-webkit'];
+const isBrowser = typeof document !== 'undefined';
 
 /* eslint no-useless-escape: "off" */
 const SPECIAL_CHARS_REGEXP = /([\:\-\_]+(.))/g
@@ -210,7 +211,8 @@ const isEmpty = (object) => {
 };
 
 export {
-  IS_NODE,
+  isNode,
+  isBrowser,
   stamp,
   uuid,
   merge,

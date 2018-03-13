@@ -1,4 +1,4 @@
-import { trim, camelCase, isString } from './common'
+import { isBrowser, trim, camelCase, isString } from './common'
 
 /**
  * core create canvas
@@ -8,7 +8,7 @@ import { trim, camelCase, isString } from './common'
  * @returns {HTMLCanvasElement}
  */
 const createCanvas = function (width, height, Canvas) {
-  if (typeof document !== 'undefined') {
+  if (isBrowser) {
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
