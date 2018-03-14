@@ -14,28 +14,28 @@ if (!fs.existsSync('dist')) {
  * @param builds
  */
 function build (builds) {
-  let built = 0
-  const total = builds.length
+  let index = 0;
+  const total = builds.length;
   const next = () => {
-    buildEntry(builds[built]).then(() => {
-      built++
-      if (built < total) {
-        next()
+    const _result = buildEntry(builds[index]).next();
+    _result.value.then(() => {
+      index++;
+      if (index < total) {
+        next();
       }
-    }).catch(logError)
-  }
-  next()
+    }).catch(logError);
+  };
+  next();
 }
-
 /**
  * builder
  * @param input
  * @param output
  * @returns {Promise.<TResult>}
  */
-function buildEntry ({ input, output }) {
-  const isProd = /min\.js$/.test(output.file)
-  return rollup.rollup(input)
+const buildEntry = function* ({ input, output }) {
+  const isProd = /min\.js$/.test(output.file);
+  yield rollup.rollup(input)
     .then(bundle => bundle.generate(output))
     .then(({ code }) => {
       if (isProd) {
@@ -46,14 +46,13 @@ function buildEntry ({ input, output }) {
             ascii_only: true
             /* eslint-enable camelcase */
           }
-        }).code
+        }).code;
         return write(output.file, minified, true)
       } else {
         return write(output.file, code)
       }
     })
 }
-
 /**
  * write file to disk
  * @param dest
@@ -61,17 +60,17 @@ function buildEntry ({ input, output }) {
  * @param zip
  * @returns {Promise}
  */
-function write (dest, code, zip) {
+const write = (dest, code, zip) => {
   return new Promise((resolve, reject) => {
     function report (extra) {
-      console.log(blue(path.relative(process.cwd(), dest)) + ' ' + getSize(code) + (extra || ''))
+      console.log(blueString(path.relative(process.cwd(), dest)) + ' ' + getSize(code) + (extra || ''));
       resolve()
     }
     fs.writeFile(dest, code, err => {
-      if (err) return reject(err)
+      if (err) return reject(err);
       if (zip) {
         zlib.gzip(code, (err, zipped) => {
-          if (err) return reject(err)
+          if (err) return reject(err);
           report(' (gzipped: ' + getSize(zipped) + ')')
         })
       } else {
@@ -79,7 +78,7 @@ function write (dest, code, zip) {
       }
     })
   })
-}
+};
 
 /**
  * get file size
@@ -103,7 +102,7 @@ function logError (e) {
  * @param str
  * @returns {string}
  */
-function blue (str) {
+function blueString (str) {
   return '\x1b[1m\x1b[34m' + str + '\x1b[39m\x1b[22m'
 }
 

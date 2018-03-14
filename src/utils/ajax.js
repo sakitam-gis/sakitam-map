@@ -1,4 +1,4 @@
-import {merge, formatParams, TypeOf, isFormData, isObject} from '../utils'
+import {merge, formatParams, isFormData, isObject} from '../utils'
 
 class Ajax {
   constructor (engine) {
@@ -93,7 +93,7 @@ class Ajax {
         }
       } catch (e) {
       }
-      if (['object', 'array'].indexOf(TypeOf(options.body)) !== -1) {
+      if (['object', 'array'].indexOf(Object.prototype.toString.call(options.body).slice(8, -1).toLowerCase()) !== -1) {
         options.headers['Content-type'] = 'application/json;charset=utf-8'
         data = JSON.stringify(options.body)
       }
