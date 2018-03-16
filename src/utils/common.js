@@ -16,13 +16,13 @@ for (let i = 0; i < 256; ++i) {
 
 const trim = function (string) {
   return (string || '').replace(/^[\s\uFEFF]+|[\s\uFEFF]+$/g, '')
-}
+};
 
 const camelCase = function (name) {
   return name.replace(SPECIAL_CHARS_REGEXP, function (_, separator, letter, offset) {
     return offset ? letter.toUpperCase() : letter
   }).replace(MOZ_HACK_REGEXP, 'Moz$1')
-}
+};
 
 /**
  * stamp string
@@ -30,10 +30,10 @@ const camelCase = function (name) {
  * @returns {*}
  */
 const stamp = function (obj) {
-  let key = '_event_id_'
-  obj[key] = obj[key] || (uuid())
+  let key = '_event_id_';
+  obj[key] = obj[key] || (uuid());
   return obj[key]
-}
+};
 
 /**
  * check is null
@@ -42,7 +42,7 @@ const stamp = function (obj) {
  */
 const isNull = (obj) => {
   return obj == null;
-}
+};
 
 /**
  * check is number
@@ -51,7 +51,7 @@ const isNull = (obj) => {
  */
 const isNumber = (val) => {
   return (typeof val === 'number') && !isNaN(val);
-}
+};
 
 /**
  * 判断是否为对象
@@ -61,7 +61,25 @@ const isNumber = (val) => {
 const isObject = value => {
   const type = typeof value
   return value !== null && (type === 'object' || type === 'function')
-}
+};
+
+/**
+ * is date value
+ * @param val
+ * @returns {boolean}
+ */
+const isDate = (val) => {
+  return toString.call(val) === '[object Date]';
+};
+
+/**
+ * is array buffer
+ * @param val
+ * @returns {boolean}
+ */
+const isArrayBuffer = (val) => {
+  return toString.call(val) === '[object ArrayBuffer]';
+};
 
 /**
  * 判断是否为合法字符串
@@ -94,7 +112,7 @@ const bytesToUuid = (buf, offset) => {
     bth[buf[i++]] + bth[buf[i++]] +
     bth[buf[i++]] + bth[buf[i++]] +
     bth[buf[i++]] + bth[buf[i++]];
-}
+};
 
 /**
  * math rng
@@ -158,44 +176,58 @@ const encode = (val) => {
     .replace(/%20/g, '+')
     .replace(/%5B/gi, '[')
     .replace(/%5D/gi, ']')
-}
+};
 
 /**
- * 格式化请求参数
- * @param data
- * @returns {string}
+ * is search params
+ * @param val
+ * @returns {boolean}
  */
-const formatParams = (data) => {
-  let arr = []
-  for (let name in data) {
-    let value = data[name]
-    if (isObject(value)) {
-      value = JSON.stringify(value)
-    }
-    arr.push(encode(name) + '=' + encode(value))
-  }
-  return arr.join('&')
-}
+const isURLSearchParams = (val) => {
+  return typeof URLSearchParams !== 'undefined' && val instanceof URLSearchParams;
+};
 
 /**
  * merge
- * @param target
+ * @param a
+ * @param b
  * @returns {*}
  */
-const merge = (target) => {
-  for (let i = 1, j = arguments.length; i < j; i++) {
-    let source = arguments[i] || {};
-    for (const prop in source) {
-      if (source.hasOwnProperty(prop)) {
-        let value = source[prop];
-        if (value !== undefined) {
-          target[prop] = value
-        }
+const merge = (a, b) => {
+  for (const key in b) {
+    if (isObject(b[key]) && isObject(a[key])) {
+      merge(a[key], b[key])
+    } else {
+      a[key] = b[key]
+    }
+  }
+  return a
+};
+
+/**
+ * foreach object or array
+ * @param obj
+ * @param fn
+ */
+const forEach = (obj, fn) => {
+  if (obj === null || typeof obj === 'undefined') {
+    return;
+  }
+  if (typeof obj !== 'object') {
+    obj = [obj];
+  }
+  if (Array.isArray(obj)) {
+    for (let i = 0, l = obj.length; i < l; i++) {
+      fn.call(null, obj[i], i, obj);
+    }
+  } else {
+    for (let key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        fn.call(null, obj[key], key, obj);
       }
     }
   }
-  return target
-};
+}
 
 /**
  * check isEmpty object
@@ -211,6 +243,7 @@ const isEmpty = (object) => {
 };
 
 export {
+  isDate,
   isNode,
   isBrowser,
   stamp,
@@ -218,11 +251,14 @@ export {
   merge,
   trim,
   isNull,
+  forEach,
   isEmpty,
   isString,
   isObject,
   isNumber,
   camelCase,
   isFormData,
-  formatParams
+  encode,
+  isArrayBuffer,
+  isURLSearchParams
 }

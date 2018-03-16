@@ -1,163 +1,253 @@
-import {merge, formatParams, isFormData, isObject} from '../utils'
+// form https://github.com/axios/axios
+import {isBrowser, trim, merge, isDate, isObject, encode, forEach, isFormData, isURLSearchParams} from './common'
+
+/**
+ * default config
+ * @type {{method: string, baseURL: string, headers: {"Content-type": string}, timeout: number, withCredentials: boolean}}
+ */
+const defaults = {
+  method: 'get',
+  baseURL: '',
+  headers: {
+    'Content-type': 'application/x-www-form-urlencoded'
+  },
+  timeout: 0,
+  withCredentials: false,
+  paramsSerializer: '',
+  onDownloadProgress: function () {},
+  onUploadProgress: function () {}
+};
+
+const ignoreDuplicateOf = [
+  'age', 'authorization', 'content-length', 'content-type', 'etag',
+  'expires', 'from', 'host', 'if-modified-since', 'if-unmodified-since',
+  'last-modified', 'location', 'max-forwards', 'proxy-authorization',
+  'referer', 'retry-after', 'user-agent'
+];
+
+/**
+ * error handle
+ * @param message
+ * @param config
+ * @param code
+ * @param request
+ * @param response
+ * @returns {Error}
+ */
+const createError = (message, config, code, request, response) => {
+  const error = new Error(message);
+  error.config = config;
+  if (code) {
+    error.code = code;
+  }
+  error.request = request;
+  error.response = response;
+  return error;
+};
+
+/**
+ * parse header to xhr
+ * @param headers
+ * @returns {null}
+ */
+const parseHeaders = (headers) => {
+  let [parsed, key, val, i] = [{}, undefined, undefined, undefined];
+  if (!headers) { return parsed; }
+  forEach(headers.split('\n'), (line) => {
+    i = line.indexOf(':');
+    key = trim(line.substr(0, i)).toLowerCase();
+    val = trim(line.substr(i + 1));
+    if (key) {
+      if (parsed[key] && ignoreDuplicateOf.indexOf(key) >= 0) {
+        return;
+      }
+      if (key === 'set-cookie') {
+        parsed[key] = (parsed[key] ? parsed[key] : []).concat([val]);
+      } else {
+        parsed[key] = parsed[key] ? parsed[key] + ', ' + val : val;
+      }
+    }
+  });
+  return parsed;
+};
+
+/**
+ * build service url
+ * @param url
+ * @param params
+ * @param paramsSerializer
+ * @returns {*}
+ */
+const buildURL = (url, params, paramsSerializer) => {
+  /* eslint no-param-reassign: 0 */
+  if (!params) {
+    return url;
+  }
+  let serializedParams;
+  if (paramsSerializer) {
+    serializedParams = paramsSerializer(params);
+  } else if (isURLSearchParams(params)) {
+    serializedParams = params.toString();
+  } else {
+    const parts = [];
+    forEach(params, (val, key) => {
+      if (val === null || typeof val === 'undefined') {
+        return;
+      }
+      if (Array.isArray(val)) {
+        key = key + '[]';
+      } else {
+        val = [val];
+      }
+      forEach(val, (v) => {
+        if (isDate(v)) {
+          v = v.toISOString();
+        } else if (isObject(v)) {
+          v = JSON.stringify(v);
+        }
+        parts.push(encode(key) + '=' + encode(v));
+      });
+    });
+    serializedParams = parts.join('&');
+  }
+  if (serializedParams) {
+    url += (url.indexOf('?') === -1 ? '?' : '&') + serializedParams;
+  }
+  return url;
+};
+
+/**
+ * combine service url
+ * @param config
+ * @returns {*}
+ */
+const combineURL = (config) => {
+  let url = trim(config.url);
+  let baseUrl = trim(config.baseURL || '');
+  if (!url && isBrowser && !baseUrl) url = location.href;
+  if (url.indexOf('http') !== 0) {
+    /* eslint no-useless-escape: "off" */
+    let isAbsolute = /^([a-z][a-z\d\+\-\.]*:)?\/\//i.test(url);
+    if (!baseUrl && isBrowser) {
+      var arr = location.pathname.split('/');
+      arr.pop();
+      baseUrl = location.protocol + '//' + location.host + (isAbsolute ? baseUrl : arr.join('/'))
+    }
+    // relativeURL
+    //   ? baseURL.replace(/\/+$/, '') + '/' + relativeURL.replace(/^\/+/, '')
+    //   : baseURL
+    if (baseUrl[baseUrl.length - 1] !== '/') {
+      baseUrl += '/'
+    }
+    url = baseUrl + (isAbsolute ? url.substr(1) : url)
+    if (isBrowser) {
+      const a = document.createElement('a');
+      a.href = url;
+      url = a.href;
+    }
+  }
+  return url
+};
 
 class Ajax {
-  constructor (engine) {
-    this.engine = engine || XMLHttpRequest
-    this.interceptors = {
-      response: {
-        use (handler, onerror) {
-          this.handler = handler
-          this.onerror = onerror
-        }
-      },
-      request: {
-        use (handler) {
-          this.handler = handler
-        }
-      }
-    }
-    this.config = {
-      method: 'GET',
-      baseURL: '',
-      headers: {},
-      timeout: 0,
-      withCredentials: false
-    }
+  static createInstance = (adapter) => {
+    return new Ajax(adapter);
+  };
+  constructor (adapter) {
+    this.adapter = adapter || XMLHttpRequest;
   }
-  request (url, data, options) {
+  request (config) {
+    if (typeof config === 'string') {
+      config = merge({
+        url: arguments[0]
+      }, arguments[1]);
+    }
+    config = merge(defaults, config);
+    config.method = config.method.toLowerCase();
     /* eslint new-cap: 0 */
-    const engine = new this.engine()
+    let request = new this.adapter();
     let promise = new Promise((resolve, reject) => {
-      options = options || {}
-      let defaultHeaders = {
-        'Content-type': 'application/x-www-form-urlencoded'
+      let requestData = config.data;
+      let requestHeaders = config.headers;
+      request.withCredentials = !!config.withCredentials;
+      const isGet = config.method === 'get';
+      if (isFormData(requestData)) {
+        delete requestHeaders['Content-Type']; // Let the browser set it
       }
-      merge(defaultHeaders, this.config.headers)
-      this.config.headers = defaultHeaders
-      merge(options, this.config)
-      let rqi = this.interceptors.request
-      let rpi = this.interceptors.response
-      options.body = data || options.body
-      let abort = false
-      let operate = {
-        reject: (e) => {
-          abort = true
-          reject(e)
-        },
-        resolve: (d) => {
-          abort = true
-          resolve(d)
+      const url = combineURL(config);
+      request.open(config.method.toUpperCase(), buildURL(url, config.params, config.paramsSerializer), true);
+      request.timeout = config.timeout
+      request.onload = () => {
+        if (!request || (request.readyState !== 4)) {
+          return;
         }
-      }
-      url = url ? url.trim() : ''
-      options.method = options.method.toUpperCase()
-      options.url = url
-      if (rqi.handler) {
-        options = rqi.handler(options, operate)
-        if (!options) return
-      }
-      if (abort) return
-      url = options.url ? options.url.trim() : ''
-      if (!url) url = location.href
-      let baseUrl = options.baseURL ? options.baseURL.trim() : ''
-      if (url.indexOf('http') !== 0) {
-        let isAbsolute = url[0] === '/'
-        if (!baseUrl) {
-          let arr = location.pathname.split('/')
-          arr.pop()
-          baseUrl = location.protocol + '//' + location.host + (isAbsolute ? '' : arr.join('/'))
+        if (request.status === 0 && !(request.responseURL && request.responseURL.indexOf('file:') === 0)) {
+          return;
         }
-        if (baseUrl[baseUrl.length - 1] !== '/') {
-          baseUrl += '/'
+        const responseHeaders = 'getAllResponseHeaders' in request ? parseHeaders(request.getAllResponseHeaders()) : null
+        const responseData = !config.responseType || config.responseType === 'text' ? request.responseText : request.response;
+        resolve({
+          data: responseData,
+          status: request.status === 1223 ? 204 : request.status,
+          statusText: request.status === 1223 ? 'No Content' : request.statusText,
+          headers: responseHeaders,
+          config: config,
+          request: request
+        });
+        request = null;
+      };
+      request.onabort = () => {
+        if (!request) {
+          return;
         }
-        url = baseUrl + (isAbsolute ? url.substr(1) : url)
-        let t = document.createElement('a')
-        t.href = url
-        url = t.href
+        reject(createError('Request aborted', config, 'ECONNABORTED', request));
+        request = null;
+      };
+      request.onerror = (e) => {
+        reject(createError('Network Error', config, null, request));
+        request = null;
+      };
+      request.ontimeout = () => {
+        reject(createError(`timeout of ' ${config.timeout} 'ms exceeded`, config, 'ECONNABORTED', request));
+        // Clean up request
+        request = null;
+      };
+      if ('setRequestHeader' in request) {
+        forEach(requestHeaders, (val, key) => {
+          if (typeof requestData === 'undefined' && key.toLowerCase() === 'content-type') {
+            // Remove Content-Type if data is undefined
+            delete requestHeaders[key];
+          } else {
+            // Otherwise add header to the request
+            request.setRequestHeader(key, val);
+          }
+        });
       }
-      let responseType = options.responseType ? options.responseType.trim() : ''
-      engine.withCredentials = !!options.withCredentials
-      let isGet = options.method === 'GET'
-      if (isGet) {
-        if (options.body) {
-          data = formatParams(options.body)
-          url += (url.indexOf('?') === -1 ? '?' : '&') + data
-        }
-      }
-      engine.open(options.method, url)
-      // try catch for ie >=9
-      try {
-        engine.timeout = options.timeout || 0
-        if (responseType !== 'stream') {
-          engine.responseType = responseType
-        }
-      } catch (e) {
-      }
-      if (['object', 'array'].indexOf(Object.prototype.toString.call(options.body).slice(8, -1).toLowerCase()) !== -1) {
-        options.headers['Content-type'] = 'application/json;charset=utf-8'
-        data = JSON.stringify(options.body)
-      }
-      for (let k in options.headers) {
-        if (k.toLowerCase() === 'content-type' &&
-          (isFormData(options.body) || !options.body || isGet)) {
-          delete options.headers[k]
-        } else {
-          try {
-            engine.setRequestHeader(k, options.headers[k])
-          } catch (e) {
+      if (config.responseType) {
+        try {
+          request.responseType = config.responseType;
+        } catch (e) {
+          if (config.responseType !== 'json') {
+            throw e;
           }
         }
       }
-      let onerror = function (e) {
-        if (rpi.onerror) {
-          e = rpi.onerror(e, operate)
-        }
-        return e
+      if (typeof config.onDownloadProgress === 'function') {
+        request.addEventListener('progress', config.onDownloadProgress);
       }
-      engine.onload = () => {
-        if ((engine.status >= 200 && engine.status < 300) || engine.status === 304) {
-          let response = engine.response || engine.responseText
-          if ((engine.getResponseHeader('Content-Type') || '').indexOf('json') !== -1 && !isObject(response)) {
-            response = JSON.parse(response)
-          }
-          let data = {data: response, engine, request: options}
-          merge(data, engine._response)
-          if (rpi.handler) {
-            data = rpi.handler(data, operate) || data
-          }
-          if (abort) return
-          resolve(data)
-        } else {
-          let err = new Error(engine.statusText)
-          err.status = engine.status
-          err = onerror(err) || err
-          if (abort) return
-          reject(err)
-        }
+      if (typeof config.onUploadProgress === 'function' && request.upload) {
+        request.upload.addEventListener('progress', config.onUploadProgress);
       }
-      engine.onerror = (e) => {
-        let err = new Error(e.msg || 'Network Error')
-        err.status = 0
-        err = onerror(err)
-        if (abort) return
-        reject(err)
-      }
-      engine.ontimeout = () => {
-        // Handle timeout error
-        let err = new Error(`timeout [ ${engine.timeout}ms ]`)
-        err.status = 1
-        err = onerror(err)
-        if (abort) return
-        reject(err)
-      }
-      engine._options = options
-      engine.send(isGet ? null : data)
-    })
-    promise.engine = engine
+      request.send(isGet ? null : requestData);
+    });
+    promise.request = request;
     return promise
   }
-  get (url, data, options) {
-    return this.request(url, data, options)
+  get (url, config = {}) {
+    return this.request(merge(config, {
+      method: 'get',
+      url: url
+    }))
   }
   getJSON (url, data, options) {
     return this.request(url, data, options)
@@ -165,12 +255,19 @@ class Ajax {
   getImage (img, url, options) {
     return this.request(img, url, options)
   }
-  post (url, data, options) {
-    return this.request(url, data, merge({method: 'POST'}, options))
+  post (url, data, config = {}) {
+    return this.request(merge(config, {
+      method: 'post',
+      url: url,
+      data: data
+    }))
   }
-  all (promises) {
-    return Promise.all(promises)
-  }
+
+  /**
+   * Syntactic sugar for invoking a function and expanding an array for arguments.
+   * @param callback
+   * @returns {Function}
+   */
   spread (callback) {
     return function (arr) {
       return callback.apply(null, arr)
@@ -178,4 +275,8 @@ class Ajax {
   }
 }
 
-export default Ajax
+const ajax = Ajax.createInstance();
+ajax.create = function (adapter) {
+  return Ajax.createInstance(adapter);
+};
+export default ajax

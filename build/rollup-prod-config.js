@@ -4,10 +4,9 @@ const zlib = require('zlib');
 const uglify = require('uglify-js');
 const rollup = require('rollup');
 const configs = require('./rollup-base-config');
+const { resolve, blueString, getSize, logError, cssPlugins, checkFolderExist } = require('./helper');
 
-if (!fs.existsSync('dist')) {
-  fs.mkdirSync('dist')
-}
+checkFolderExist(resolve('dist'), true);
 
 /**
  * build
@@ -35,6 +34,7 @@ function build (builds) {
  */
 const buildEntry = function* ({ input, output }) {
   const isProd = /min\.js$/.test(output.file);
+  input.plugins.splice(2, 0, cssPlugins(isProd));
   yield rollup.rollup(input)
     .then(bundle => bundle.generate(output))
     .then(({ code }) => {
@@ -79,31 +79,5 @@ const write = (dest, code, zip) => {
     })
   })
 };
-
-/**
- * get file size
- * @param code
- * @returns {string}
- */
-function getSize (code) {
-  return (code.length / 1024).toFixed(2) + 'kb'
-}
-
-/**
- * print error
- * @param e
- */
-function logError (e) {
-  console.log(e)
-}
-
-/**
- * add message color
- * @param str
- * @returns {string}
- */
-function blueString (str) {
-  return '\x1b[1m\x1b[34m' + str + '\x1b[39m\x1b[22m'
-}
 
 build(Object.keys(configs).map(key => configs[key]))
