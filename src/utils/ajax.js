@@ -1,5 +1,5 @@
 // form https://github.com/axios/axios
-import {isBrowser, trim, merge, isDate, isObject, encode, forEach, isFormData, isURLSearchParams} from './common'
+import {isBrowser, trim, uuid, merge, isDate, isObject, encode, forEach, isFormData, isURLSearchParams} from './common'
 
 /**
  * default config
@@ -249,11 +249,51 @@ class Ajax {
       url: url
     }))
   }
-  getJSON (url, data, options) {
-    return this.request(url, data, options)
+  getJSON (url, config = {}) {
+    return this.request(merge(config, {
+      method: 'get',
+      url: url,
+      responseType: 'json'
+    }))
   }
-  getImage (img, url, options) {
-    return this.request(img, url, options)
+  jsonp (url, callback) {
+    const name = '_jsonp_' + uuid();
+    if (url.match(/\?/)) url += '&callback=' + name;
+    else url += '?callback=' + name;
+    let script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = url;
+    window[name] = function (data) {
+      callback(null, data);
+      document.getElementsByTagName('head')[0].removeChild(script);
+      script = null;
+      delete window[name];
+    };
+    document.getElementsByTagName('head')[0].appendChild(script);
+    return this;
+  }
+  getImage (img, url, config = {}) {
+    config.responseType = 'arraybuffer';
+    return this.get(url, config).then((imgData) => {
+      if (imgData) {
+        const URL = window.URL || window.webkitURL;
+        const onload = img.onload;
+        img.onload = () => {
+          if (onload) {
+            onload();
+          }
+          URL.revokeObjectURL(img.src);
+        };
+        const blob = new Blob([new Uint8Array(imgData.data)], { type: imgData.contentType });
+        img.cacheControl = imgData.cacheControl;
+        img.expires = imgData.expires;
+        img.src = imgData.data.byteLength ? URL.createObjectURL(blob) : emptyImageUrl;
+      }
+    }).catch(error => {
+      if (img.onerror) {
+        img.onerror(error);
+      }
+    })
   }
   post (url, data, config = {}) {
     return this.request(merge(config, {

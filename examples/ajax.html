@@ -19,7 +19,7 @@
 <script type="text/javascript">
   smap.ajax.get('mock/593aabdf8ac26d795fc563b1/echarts/traffic', {
     baseURL: 'https://www.easy-mock.com',
-    responseType: 'json'
+    responseType: 'arraybuffer'
   }).then(function (res) {
     console.log(res)
   });
@@ -29,6 +29,11 @@
   }).then(function (res) {
     console.log(res)
   });
+  var image = new Image();
+  smap.ajax.getImage(image, './18089.jpg');
+  image.onload = function () {
+    document.getElementById('map').appendChild(image)
+  }
 </script>
 </body>
 </html>
