@@ -1,5 +1,6 @@
 import { createCanvas, setStyle } from '../../utils'
 import MapRenderer from '../Map.js'
+import {resolutions} from '../../proj/constants';
 
 class CanvasMapRenderer extends MapRenderer {
   /**
@@ -61,7 +62,36 @@ class CanvasMapRenderer extends MapRenderer {
      * @type {string}
      * @private
      */
-    this._renderType = 'canvas'
+    this._renderType = 'canvas';
+
+    this.resolution = (this.extent.xmax - this.extent.xmin) / (this._canvas.width);
+    for (let i in resolutions) {
+      if (resolutions[i] <= this.resolution) {
+        this.resolution = resolutions[i];
+        break;
+      }
+    }
+    this.origin = [this.extent[0], this.extent[1]];
+    this.extent[2] = this.extent[0] + this.resolution * this.canvas_.width;
+    this.extent[1] = this.extent[3] - this.resolution * this.canvas_.height;
+  }
+
+  getRenderer () {
+    return this.renderer_;
+  }
+
+  render () {
+    this.context.drawImage(this.canvas_, 0, 0);
+    this.draw(this);
+    window.requestAnimFrame(this.draw);
+  }
+
+  draw () {
+    this.context.clearRect(0, 0, this.canvas_.width, this.canvas_.height);
+    for (var i in this._layers) {
+      var layer = this._layers[i];
+      layer.draw();
+    }
   }
 }
 

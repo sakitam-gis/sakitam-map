@@ -1,4 +1,5 @@
 import './polyfill/assign'
+import './polyfill/requestAnimFrame'
 import * as utils from './utils'
 import ajax from './utils/ajax'
 import Map from './map'

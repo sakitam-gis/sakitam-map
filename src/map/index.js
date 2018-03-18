@@ -4,19 +4,19 @@ import Observable from '../events/Observable';
 
 class Map extends Observable {
   constructor (target, options = {}) {
-    super()
+    super();
     /**
      * layer group
      * @type {Array}
      * @private
      */
-    this._layerGroup = []
+    this._layerGroup = [];
 
     /**
      * target id
      */
     this._id = target;
-    this._createContent(target)
+    this._createContent(target);
   }
 
   /**
@@ -26,7 +26,7 @@ class Map extends Observable {
    */
   _createContent (target) {
     this.viewport_ = create('div', 'sakitam-map-container');
-    this.layersContent_ = create('div', 'sakitam-map-layers', this.viewport_)
+    this.layersContent_ = create('div', 'sakitam-map-layers', this.viewport_);
     setStyle(this.viewport_, {
       position: 'relative',
       overflow: 'hidden',
@@ -83,8 +83,17 @@ class Map extends Observable {
    * @private
    */
   _initRender (target) {
-    const renderer = CanvasMapRenderer.create(this.layersContent_, this);
-    this.dispatch('load', renderer);
+    this.renderer = CanvasMapRenderer.create(this.layersContent_, this);
+    this.dispatch('load', this.renderer);
+  }
+
+  getCoordinateFromPixel (pixel) {
+    let x = pixel[0] * this.renderer.resolution + this.renderer.origin[0];
+    let y = this.renderer.origin[1] - pixel[1] * this.renderer.resolution;
+    return [x, y];
+  }
+
+  getPixelFromCoordinate (coordinate) {
   }
 
   /**

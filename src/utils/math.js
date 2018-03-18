@@ -21,8 +21,13 @@ const toRadians = (angleInRadians) => {
   return angleInRadians * 180 / Math.PI;
 };
 
+const clamp = (value, min, max) => {
+  return Math.min(Math.max(value, min), max);
+};
+
 export {
   cosh,
+  clamp,
   modulo,
   toRadians
 }
