@@ -30,6 +30,9 @@
   }).then(function (res) {
     console.log(res)
   });
+  smap.ajax.jsonp('http://211.101.37.251:6080/arcgis/rest/services/henan/HNmapqgdy/MapServer?f=json').then(function (res) {
+    console.log(res)
+  });
   var image = new Image();
   smap.ajax.getImage(image, './18089.jpg');
   image.onload = function () {

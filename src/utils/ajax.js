@@ -260,44 +260,37 @@ class Ajax {
       responseType: 'json'
     }))
   }
-  jsonp (url, options = {}, callback) {
-    if (isFunction(options)) {
-      [callback, options] = [options, {}];
-    }
-    const prefix = options.prefix || '_jsonp_';
-    const id = options.name || (prefix + uuid());
-    const param = options.param || 'callback';
-    const timeout = !isNull(options.timeout) ? options.timeout : 60000;
-    const target = document.getElementsByTagName('script')[0] || document.head;
-    let [script, timer] = [];
-    if (timeout) {
-      timer = setTimeout(() => {
-        cleanup();
-        if (callback) callback(createError(`timeout of ' ${timeout} 'ms exceeded`, options, 'ECONNABORTED', this));
-      }, timeout);
-    }
-
-    function cleanup () {
-      if (script.parentNode) script.parentNode.removeChild(script);
-      window[id] = function () {};
-      if (timer) clearTimeout(timer);
-    }
-
-    function cancel () {
-      if (window[id]) {
-        cleanup();
+  jsonp (url, options = {}) {
+    return new Promise((resolve, reject) => {
+      const prefix = options.prefix || '_jsonp_';
+      const id = options.name || (prefix + uuid().replace(/-/g, '_'));
+      const param = options.param || 'callback';
+      const timeout = !isNull(options.timeout) ? options.timeout : 60000;
+      const target = document.getElementsByTagName('script')[0] || document.head;
+      let [script, timer] = [];
+      if (timeout) {
+        timer = setTimeout(() => {
+          cleanup();
+          reject(createError(`timeout of ' ${timeout} 'ms exceeded`, options, 'ECONNABORTED', this));
+        }, timeout);
       }
-    }
-    window[id] = function (data) {
-      cleanup();
-      if (callback) callback(null, data);
-    };
-    url += (~url.indexOf('?') ? '&' : '?') + param + '=' + encodeURIComponent(id);
-    url = url.replace('?&', '?');
-    script = document.createElement('script');
-    script.src = url;
-    target.parentNode.insertBefore(script, target);
-    return cancel;
+
+      function cleanup () {
+        if (script.parentNode) script.parentNode.removeChild(script);
+        window[id] = function () {};
+        if (timer) clearTimeout(timer);
+      }
+
+      window[id] = function (data) {
+        cleanup();
+        resolve(data);
+      };
+      url += (~url.indexOf('?') ? '&' : '?') + param + '=' + encodeURIComponent(id);
+      url = url.replace('?&', '?');
+      script = document.createElement('script');
+      script.src = url;
+      target.parentNode.insertBefore(script, target);
+    })
   }
   getImage (img, url, config = {}) {
     config.responseType = 'arraybuffer';
