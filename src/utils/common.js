@@ -103,7 +103,7 @@ const isString = (value) => {
     return false;
   }
   return typeof value === 'string' || (value.constructor !== null && value.constructor === String);
-}
+};
 
 /**
  * form uuid
@@ -239,7 +239,7 @@ const forEach = (obj, fn) => {
       }
     }
   }
-}
+};
 
 /**
  * check isEmpty object

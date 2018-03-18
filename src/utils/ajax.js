@@ -1,8 +1,7 @@
 import {
-  isBrowser, isFunction, trim, uuid,
-  isDate, isObject, encode, forEach,
-  isFormData, isURLSearchParams,
-  isNull
+  isBrowser, trim, uuid, isDate,
+  isObject, encode, forEach, isFormData,
+  isURLSearchParams, isNull
 } from './common'
 
 /**

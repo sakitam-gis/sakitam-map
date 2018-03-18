@@ -1,16 +1,17 @@
 import { createCanvas, setStyle } from '../../utils'
-import MapRenderer from '../Map.js'
+import MapRenderer from '../Map'
 import {resolutions} from '../../proj/constants';
 
 class CanvasMapRenderer extends MapRenderer {
   /**
-   * creat render
+   * create render
    * @param container
    * @param map
+   * @param extent
    * @returns {CanvasMapRenderer}
    */
-  static create = (container, map) => {
-    return new CanvasMapRenderer(container, map);
+  static create = (container, map, extent) => {
+    return new CanvasMapRenderer(container, map, extent);
   };
 
   /**
@@ -26,10 +27,13 @@ class CanvasMapRenderer extends MapRenderer {
    * constructor
    * @param container
    * @param map
+   * @param extent
    */
-  constructor (container, map) {
+  constructor (container, map, extent) {
     super(container, map);
 
+    this.map = map;
+    this.extent = extent;
     const size = map.getSize();
 
     /**
@@ -64,7 +68,7 @@ class CanvasMapRenderer extends MapRenderer {
      */
     this._renderType = 'canvas';
 
-    this.resolution = (this.extent.xmax - this.extent.xmin) / (this._canvas.width);
+    this.resolution = (this.extent[2] - this.extent[0]) / (this.canvas_.width);
     for (let i in resolutions) {
       if (resolutions[i] <= this.resolution) {
         this.resolution = resolutions[i];
@@ -74,6 +78,7 @@ class CanvasMapRenderer extends MapRenderer {
     this.origin = [this.extent[0], this.extent[1]];
     this.extent[2] = this.extent[0] + this.resolution * this.canvas_.width;
     this.extent[1] = this.extent[3] - this.resolution * this.canvas_.height;
+    this.draw();
   }
 
   getRenderer () {
@@ -82,15 +87,16 @@ class CanvasMapRenderer extends MapRenderer {
 
   render () {
     this.context.drawImage(this.canvas_, 0, 0);
-    this.draw(this);
+    /* eslint no-useless-call: "off" */
+    this.draw.call(this);
     window.requestAnimFrame(this.draw);
   }
 
   draw () {
     this.context.clearRect(0, 0, this.canvas_.width, this.canvas_.height);
-    for (var i in this._layers) {
-      var layer = this._layers[i];
-      layer.draw();
+    for (let i = 0; i < this.map.getLayers(); i++) {
+      const _layer = this.map.getLayers()[i];
+      _layer.render();
     }
   }
 }

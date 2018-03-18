@@ -10,7 +10,13 @@ class Map extends Observable {
      * @type {Array}
      * @private
      */
-    this._layerGroup = [];
+    this._layers = options.layers || [];
+
+    /**
+     * options
+     * @type {{}}
+     */
+    this.options = options;
 
     /**
      * target id
@@ -83,7 +89,7 @@ class Map extends Observable {
    * @private
    */
   _initRender (target) {
-    this.renderer = CanvasMapRenderer.create(this.layersContent_, this);
+    this.renderer = CanvasMapRenderer.create(this.layersContent_, this, this.options.extent);
     this.dispatch('load', this.renderer);
   }
 
@@ -133,16 +139,8 @@ class Map extends Observable {
    * get layer group
    * @returns {Array}
    */
-  getLayerGroup () {
-    return this._layerGroup;
-  }
-
-  /**
-   * get layers
-   * @returns {*}
-   */
   getLayers () {
-    return this.getLayerGroup().getLayers();
+    return this._layers;
   }
 
   /**
@@ -156,8 +154,9 @@ class Map extends Observable {
       layer = Array.prototype.slice.call(arguments, 0);
       return this.addLayer(layer);
     }
-    const layers = this.getLayerGroup().getLayers();
+    const layers = this.getLayers();
     layers.push(layer);
+    this.renderer.render();
   }
 
   /**
@@ -171,7 +170,7 @@ class Map extends Observable {
       layer = Array.prototype.slice.call(arguments, 0);
       return this.removeLayer(layer);
     }
-    const layers = this.getLayerGroup().getLayers();
+    const layers = this.getLayers();
     return layers.remove(layer);
   }
 
