@@ -19,7 +19,8 @@
 <script type="text/javascript">
   smap.ajax.get('mock/593aabdf8ac26d795fc563b1/echarts/traffic', {
     baseURL: 'https://www.easy-mock.com',
-    responseType: 'arraybuffer'
+    responseType: 'arraybuffer',
+    timeout: 100
   }).then(function (res) {
     console.log(res)
   });

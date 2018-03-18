@@ -64,6 +64,18 @@ const isObject = value => {
 };
 
 /**
+ * check is function
+ * @param value
+ * @returns {boolean}
+ */
+const isFunction = value => {
+  if (!isObject(value)) {
+    return false
+  }
+  return typeof value === 'function' || (value.constructor !== null && value.constructor === Function);
+};
+
+/**
  * is date value
  * @param val
  * @returns {boolean}
@@ -257,6 +269,7 @@ export {
   isObject,
   isNumber,
   camelCase,
+  isFunction,
   isFormData,
   encode,
   isArrayBuffer,

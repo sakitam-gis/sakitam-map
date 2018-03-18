@@ -1,5 +1,9 @@
-// form https://github.com/axios/axios
-import {isBrowser, trim, uuid, merge, isDate, isObject, encode, forEach, isFormData, isURLSearchParams} from './common'
+import {
+  isBrowser, isFunction, trim, uuid,
+  isDate, isObject, encode, forEach,
+  isFormData, isURLSearchParams,
+  isNull
+} from './common'
 
 /**
  * default config
@@ -129,7 +133,7 @@ const combineURL = (config) => {
     /* eslint no-useless-escape: "off" */
     let isAbsolute = /^([a-z][a-z\d\+\-\.]*:)?\/\//i.test(url);
     if (!baseUrl && isBrowser) {
-      var arr = location.pathname.split('/');
+      let arr = location.pathname.split('/');
       arr.pop();
       baseUrl = location.protocol + '//' + location.host + (isAbsolute ? baseUrl : arr.join('/'))
     }
@@ -158,11 +162,11 @@ class Ajax {
   }
   request (config) {
     if (typeof config === 'string') {
-      config = merge({
+      config = Object.assign({
         url: arguments[0]
       }, arguments[1]);
     }
-    config = merge(defaults, config);
+    config = Object.assign({}, defaults, config);
     config.method = config.method.toLowerCase();
     /* eslint new-cap: 0 */
     let request = new this.adapter();
@@ -244,33 +248,56 @@ class Ajax {
     return promise
   }
   get (url, config = {}) {
-    return this.request(merge(config, {
+    return this.request(Object.assign({}, config, {
       method: 'get',
       url: url
     }))
   }
   getJSON (url, config = {}) {
-    return this.request(merge(config, {
+    return this.request(Object.assign({}, config, {
       method: 'get',
       url: url,
       responseType: 'json'
     }))
   }
-  jsonp (url, callback) {
-    const name = '_jsonp_' + uuid();
-    if (url.match(/\?/)) url += '&callback=' + name;
-    else url += '?callback=' + name;
-    let script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = url;
-    window[name] = function (data) {
-      callback(null, data);
-      document.getElementsByTagName('head')[0].removeChild(script);
-      script = null;
-      delete window[name];
+  jsonp (url, options = {}, callback) {
+    if (isFunction(options)) {
+      [callback, options] = [options, {}];
+    }
+    const prefix = options.prefix || '_jsonp_';
+    const id = options.name || (prefix + uuid());
+    const param = options.param || 'callback';
+    const timeout = !isNull(options.timeout) ? options.timeout : 60000;
+    const target = document.getElementsByTagName('script')[0] || document.head;
+    let [script, timer] = [];
+    if (timeout) {
+      timer = setTimeout(() => {
+        cleanup();
+        if (callback) callback(createError(`timeout of ' ${timeout} 'ms exceeded`, options, 'ECONNABORTED', this));
+      }, timeout);
+    }
+
+    function cleanup () {
+      if (script.parentNode) script.parentNode.removeChild(script);
+      window[id] = function () {};
+      if (timer) clearTimeout(timer);
+    }
+
+    function cancel () {
+      if (window[id]) {
+        cleanup();
+      }
+    }
+    window[id] = function (data) {
+      cleanup();
+      if (callback) callback(null, data);
     };
-    document.getElementsByTagName('head')[0].appendChild(script);
-    return this;
+    url += (~url.indexOf('?') ? '&' : '?') + param + '=' + encodeURIComponent(id);
+    url = url.replace('?&', '?');
+    script = document.createElement('script');
+    script.src = url;
+    target.parentNode.insertBefore(script, target);
+    return cancel;
   }
   getImage (img, url, config = {}) {
     config.responseType = 'arraybuffer';
@@ -287,7 +314,7 @@ class Ajax {
         const blob = new Blob([new Uint8Array(imgData.data)], { type: imgData.contentType });
         img.cacheControl = imgData.cacheControl;
         img.expires = imgData.expires;
-        img.src = imgData.data.byteLength ? URL.createObjectURL(blob) : emptyImageUrl;
+        img.src = imgData.data.byteLength ? URL.createObjectURL(blob) : '';
       }
     }).catch(error => {
       if (img.onerror) {
@@ -296,7 +323,7 @@ class Ajax {
     })
   }
   post (url, data, config = {}) {
-    return this.request(merge(config, {
+    return this.request(Object.assign({}, config, {
       method: 'post',
       url: url,
       data: data

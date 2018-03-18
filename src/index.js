@@ -1,3 +1,4 @@
+import './polyfill/assign'
 import * as utils from './utils'
 import ajax from './utils/ajax'
 import Map from './map'
