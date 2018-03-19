@@ -59,8 +59,9 @@ class TileLayer extends Base {
       for (let i = 0; i < this.tiles.length; i++) {
         const tile = this.tiles[i];
         const context = this.getMap().getContext();
+        tile.un('load', this.render, this);
+        tile.on('load', this.render, this);
         if (tile.isLoaded()) {
-          console.log(tile)
           context.drawImage(tile.getImage(), 0, 0, this.tileSize[0], this.tileSize[1], tile.getOffset()[0], tile.getOffset()[1], this.tileSize[0] / this.scale, this.tileSize[1] / this.scale);
         }
       }
@@ -78,7 +79,7 @@ class TileLayer extends Base {
         break;
       }
     }
-    this.level = z;
+    this.zoom = z;
     let tileLeft = Math.floor((this.extent[0] - this.origin[0]) / this.tileSize[0] / this.resolution);
     let tileRight = Math.ceil((this.extent[2] - this.origin[0]) / this.tileSize[0] / this.resolution) - 1;
     let tileTop = Math.floor((this.origin[1] - this.extent[3]) / this.tileSize[1] / this.resolution);
@@ -96,10 +97,10 @@ class TileLayer extends Base {
     const _tiles = [];
     for (let i = params.extent[0]; i <= params.extent[2]; ++i) {
       for (let j = params.extent[1]; j <= params.extent[3]; ++j) {
-        const url = this.url.replace('{z}', params['level']).replace('{x}', i).replace('{y}', j);
+        const url = this.url.replace('{z}', params['zoom']).replace('{x}', i).replace('{y}', j);
         let xmin = i * this.tileSize[0] * params['resolution'] + this.origin[0];
         let ymax = this.origin[1] - j * this.tileSize[1] * params['resolution'];
-        _tiles.push(new Tile(url, i, j, this.level, xmin, ymax, this, this.crossOrigin));
+        _tiles.push(new Tile(url, i, j, this.zoom, xmin, ymax, this, this.crossOrigin));
       }
     }
     return _tiles;
@@ -107,7 +108,7 @@ class TileLayer extends Base {
 
   /**
    * get params
-   * @returns {{extent: *[], level: *, resolution: *}}
+   * @returns {{extent: *[], zoom: *, resolution: *}}
    */
   getParams () {
     const extent = this.getMap().getExtent();
@@ -121,7 +122,7 @@ class TileLayer extends Base {
     tileBottom = tileBottom > this.tileExtent[3] ? this.tileExtent[3] : tileBottom;
     return {
       extent: [tileLeft, tileTop, tileRight, tileBottom],
-      level: this.level,
+      zoom: this.zoom,
       resolution: this.resolution
     }
   }

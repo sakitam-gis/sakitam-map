@@ -94,7 +94,7 @@ class CanvasMapRenderer extends MapRenderer {
     this.context.drawImage(this.canvas_, 0, 0);
     /* eslint no-useless-call: "off" */
     this.draw();
-    // window.requestAnimFrame(this.draw.bind(this));
+    window.requestAnimFrame(this.draw.bind(this));
   }
 
   draw () {

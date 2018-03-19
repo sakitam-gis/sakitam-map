@@ -1,23 +1,27 @@
 import ajax from '../../utils/ajax';
+import Observable from '../../events/Observable';
 
-class Tile {
+class Tile extends Observable {
   constructor (url, x, y, z, xmin, ymax, context, crossOrigin) {
+    super()
     const that = this;
     this.tile = new Image();
     ajax.getImage(this.tile, url);
     this.tile.onload = function () {
-      that.isLoad = true;
       that.update();
+      that.isLoad = true;
+      that.dispatch('load', this);
     };
     if (crossOrigin) {
       this.tile.crossOrigin = 'Anonymous'
     }
+    this.offset = [0, 0];
     this.xmin = xmin;
     this.ymax = ymax;
     this.x = x;
     this.y = y;
-    this.level = z;
-    this.isLoad = true;
+    this.z = z;
+    this.isLoad = false;
     this.layer = context;
   }
 
@@ -25,8 +29,7 @@ class Tile {
     const map = this.layer.getMap();
     if (this.layer.getMap()) {
       const origin = map.getOrigin();
-      this.offsetX = (this.xmin - origin[0]) / map.getResolution();
-      this.offsetY = (origin[1] - this.ymax) / map.getResolution();
+      this.offset = [(this.xmin - origin[0]) / map.getResolution(), (origin[1] - this.ymax) / map.getResolution()];
     }
   }
 
@@ -51,7 +54,7 @@ class Tile {
    * @returns {*[]}
    */
   getOffset () {
-    return [this.offsetX, this.offsetY];
+    return this.offset;
   }
 }
 
