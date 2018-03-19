@@ -68,14 +68,19 @@ class CanvasMapRenderer extends MapRenderer {
      */
     this._renderType = 'canvas';
 
+    /**
+     * resolutions
+     */
+    this.resolutions = resolutions;
+
     this.resolution = (this.extent[2] - this.extent[0]) / (this.canvas_.width);
-    for (let i in resolutions) {
-      if (resolutions[i] <= this.resolution) {
-        this.resolution = resolutions[i];
+    for (let i in this.resolutions) {
+      if (this.resolutions[i] <= this.resolution) {
+        this.resolution = this.resolutions[i];
         break;
       }
     }
-    this.origin = [this.extent[0], this.extent[1]];
+    this.origin = [this.extent[0], this.extent[3]];
     this.extent[2] = this.extent[0] + this.resolution * this.canvas_.width;
     this.extent[1] = this.extent[3] - this.resolution * this.canvas_.height;
     this.draw();
@@ -88,15 +93,16 @@ class CanvasMapRenderer extends MapRenderer {
   render () {
     this.context.drawImage(this.canvas_, 0, 0);
     /* eslint no-useless-call: "off" */
-    this.draw.call(this);
-    window.requestAnimFrame(this.draw);
+    this.draw();
+    // window.requestAnimFrame(this.draw.bind(this));
   }
 
   draw () {
+    const _layers = this.map.getLayers();
     this.context.clearRect(0, 0, this.canvas_.width, this.canvas_.height);
-    for (let i = 0; i < this.map.getLayers(); i++) {
-      const _layer = this.map.getLayers()[i];
-      _layer.render();
+    for (let i = 0; i < _layers.length; i++) {
+      const _layer = _layers[i];
+      _layer.load();
     }
   }
 }

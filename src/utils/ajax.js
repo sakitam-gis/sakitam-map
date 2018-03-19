@@ -132,17 +132,11 @@ const combineURL = (config) => {
     /* eslint no-useless-escape: "off" */
     let isAbsolute = /^([a-z][a-z\d\+\-\.]*:)?\/\//i.test(url);
     if (!baseUrl && isBrowser) {
-      let arr = location.pathname.split('/');
+      const arr = location.pathname.split('/');
       arr.pop();
-      baseUrl = location.protocol + '//' + location.host + (isAbsolute ? baseUrl : arr.join('/'))
+      baseUrl = location.protocol + '//' + location.host + (isAbsolute ? baseUrl : arr.join('/'));
     }
-    // relativeURL
-    //   ? baseURL.replace(/\/+$/, '') + '/' + relativeURL.replace(/^\/+/, '')
-    //   : baseURL
-    if (baseUrl[baseUrl.length - 1] !== '/') {
-      baseUrl += '/'
-    }
-    url = baseUrl + (isAbsolute ? url.substr(1) : url)
+    url = baseUrl.replace(/\/+$/, '') + '/' + url.replace(/^\/+/, '');
     if (isBrowser) {
       const a = document.createElement('a');
       a.href = url;

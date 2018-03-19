@@ -150,12 +150,12 @@ class Map extends Observable {
    */
   addLayer (layer) {
     if (!layer) return this;
-    if (!Array.isArray(layer)) {
-      layer = Array.prototype.slice.call(arguments, 0);
-      return this.addLayer(layer);
-    }
-    const layers = this.getLayers();
-    layers.push(layer);
+    // if (!Array.isArray(layer)) {
+    //   layer = Array.prototype.slice.call(arguments, 0);
+    //   return this.addLayer(layer);
+    // }
+    layer.setMap(this);
+    this._layers.push(layer);
     this.renderer.render();
   }
 
@@ -172,6 +172,45 @@ class Map extends Observable {
     }
     const layers = this.getLayers();
     return layers.remove(layer);
+  }
+
+  /**
+   * get render context
+   */
+  getContext () {
+    return this.renderer.context;
+  }
+
+  /**
+   * get origin
+   * @returns {Array}
+   */
+  getOrigin () {
+    return this.renderer.origin;
+  }
+
+  /**
+   * get extent
+   * @returns {*|number[]}
+   */
+  getExtent () {
+    return this.renderer.extent;
+  }
+
+  /**
+   * get resolutions
+   * @returns {*}
+   */
+  getResolutions () {
+    return this.renderer.resolutions;
+  }
+
+  /**
+   * get resolution
+   * @returns {*}
+   */
+  getResolution () {
+    return this.renderer.resolution;
   }
 
   /**

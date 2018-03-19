@@ -17,10 +17,10 @@
 <div id="map"></div>
 <script src="../dist/sakitam-map.js"></script>
 <script type="text/javascript">
-  smap.ajax.get('mock/593aabdf8ac26d795fc563b1/echarts/traffic', {
+  smap.ajax.get('/mock/593aabdf8ac26d795fc563b1/echarts/traffic', {
     baseURL: 'https://www.easy-mock.com',
     responseType: 'arraybuffer',
-    timeout: 100
+    timeout: 1000
   }).then(function (res) {
     console.log(res)
   });

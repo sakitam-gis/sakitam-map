@@ -23,9 +23,14 @@
     extent: [10762435.858420863, 3415567.428002159, 17135450.014862295, 6351564.966545691],
     zoom: 2
   });
-  map.addLayer(new smap.layer.TileLayer({
-    url: ''
-  }))
+
+  var layer = new smap.layer.TileLayer({
+    url: 'http://www.google.cn/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}',
+    origin: [-20037508.3427892, 20037508.3427892],
+    extent: [-20037508.3427892, -20037508.3427892, 20037508.3427892, 20037508.3427892],
+  });
+
+  map.addLayer(layer);
 </script>
 </body>
 </html>
