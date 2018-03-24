@@ -24,8 +24,23 @@
   });
   map.on('load', function (event, data) {
     console.log(event, data)
-  })
+  });
+
+  const radius = 6378137
+  const max = 85.0511287798
+  const radians = Math.PI / 180
+
+  function mercator (longitude, latitude) {
+    let x = radius * longitude * radians
+    let y = Math.max(Math.min(max, latitude), -max) * radians
+    y = radius * Math.log(Math.tan((Math.PI / 4) + (y / 2)))
+    console.log([x, y])
+    return [x, y]
+  }
+
+  mercator.apply(this, [113.53450137499999, 34.44104525]);
   var coordOrign = smap.proj.fromLonLat([113.53450137499999, 34.44104525]);
+  console.log(coordOrign)
   var coordOrign_ = smap.proj.toLonLat(coordOrign);
   console.log(coordOrign, coordOrign_);
   smap.ajax.get('mock/593aabdf8ac26d795fc563b1/echarts/traffic', {

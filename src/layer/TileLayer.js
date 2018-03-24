@@ -74,9 +74,9 @@ class TileLayer extends Base {
 
   render () {
     if (this.getMap()) {
+      const context = this.getMap().getContext();
       for (let i = 0; i < this.tiles.length; i++) {
         const tile = this.tiles[i];
-        const context = this.getMap().getContext();
         tile.un('load', this.render, this);
         tile.on('load', this.render, this);
         if (tile.isLoaded()) {

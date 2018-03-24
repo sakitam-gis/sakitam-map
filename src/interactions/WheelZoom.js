@@ -1,5 +1,5 @@
-import { preventDefault, checkBrowser } from '../utils';
 import Base from './Base';
+import { preventDefault, checkBrowser } from '../utils';
 import { getForViewAndSize } from '../proj/extent'
 
 class WheelZoom extends Base {
@@ -32,7 +32,7 @@ class WheelZoom extends Base {
       return false;
     }
     const origin = this._map.getOrigin();
-    const coordinates = this._map.getCoordinateFromPixel([event.clientX, event.clientY]);
+    const coordinates = this._map.getCoordinateFromPixel(this._map.getEventPixel(event));
     const resolutions = this._map.getResolutions();
     const resolution = this._map.getResolution();
     let newResolution = '';
@@ -44,10 +44,10 @@ class WheelZoom extends Base {
     // }
     if (event.wheelDelta > 0) {
       for (let i = 0; i < resolutions.length; i++) {
-        if (resolution >= resolutions[i]) {
+        if (resolution > resolutions[i]) {
           newResolution = resolutions[i];
-          this._map.renderer.setResolution(newResolution);
           const scale = resolution / newResolution;
+          this._map.renderer.setResolution(newResolution);
           this._map.renderer.setOrigin([
             origin[0] + (coordinates[0] - origin[0]) / scale,
             origin[1] + (coordinates[1] - origin[1]) / scale
@@ -63,8 +63,8 @@ class WheelZoom extends Base {
           } else {
             newResolution = resolutions[i - 1];
           }
-          this._map.renderer.setResolution(newResolution);
           const scale = newResolution / resolution;
+          this._map.renderer.setResolution(newResolution);
           this._map.renderer.setOrigin([
             origin[0] + (coordinates[0] - origin[0]) / (scale - 1),
             origin[1] + (coordinates[1] - origin[1]) / (scale - 1)
@@ -74,12 +74,14 @@ class WheelZoom extends Base {
       }
     }
     console.log(getForViewAndSize(coordinates, newResolution, 0, this._map.getSize()));
-    this._map.renderer.setExtent(getForViewAndSize(coordinates, newResolution, 0, this._map.getSize()));
-    // this._map.renderer.setExtent([
-    //   this._map.getOrigin()[0],
-    //   this._map.getOrigin()[1] - newResolution * this._map.getSize()[1],
-    //   this._map.getOrigin()[0] + newResolution * this._map.getSize()[0],
-    //   this._map.getOrigin()[1]]);
+    // this._map.renderer.setExtent(getForViewAndSize(coordinates, newResolution, 0, this._map.getSize()));
+    const newOrigin = this._map.getOrigin();
+    this._map.renderer.setExtent([
+      newOrigin[0],
+      newOrigin[1] - newResolution * this._map.getSize()[1],
+      newOrigin[0] + newResolution * this._map.getSize()[0],
+      newOrigin[1]
+    ]);
     return false;
   }
 }

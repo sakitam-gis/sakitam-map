@@ -101,13 +101,29 @@ class Map extends Observable {
   }
 
   /**
+   * get pixel from event
+   * @param event
+   * @returns {*[]}
+   */
+  getEventPixel (event) {
+    const viewportPosition = this.viewport_.getBoundingClientRect();
+    const eventPosition = event.changedTouches ? event.changedTouches[0] : event;
+    return [
+      eventPosition.clientX - viewportPosition.left,
+      eventPosition.clientY - viewportPosition.top
+    ];
+  }
+
+  /**
    * get coordinates from pixel
    * @param pixel
    * @returns {*[]}
    */
   getCoordinateFromPixel (pixel) {
-    let x = pixel[0] * this.renderer.resolution + this.renderer.origin[0];
-    let y = this.renderer.origin[1] - pixel[1] * this.renderer.resolution;
+    const _origin = this.getOrigin();
+    const _resolution = this.getResolution();
+    let x = pixel[0] * _resolution + _origin[0];
+    let y = _origin[1] - pixel[1] * _resolution;
     return [x, y];
   }
 

@@ -1,8 +1,8 @@
+import { get as getProjection } from '../../proj'
 import { createCanvas, setStyle } from '../../utils'
-import MapRenderer from '../Map'
-import { get } from '../../proj'
+import Observable from '../../events/Observable';
 
-class CanvasMapRenderer extends MapRenderer {
+class CanvasMapRenderer extends Observable {
   /**
    * create render
    * @param container
@@ -15,29 +15,20 @@ class CanvasMapRenderer extends MapRenderer {
   };
 
   /**
-   * check is canvas render
-   * @param type
-   * @returns {boolean}
-   */
-  static handles = type => {
-    return type === 'canvas'
-  };
-
-  /**
    * constructor
    * @param container
    * @param map
    * @param options
    */
   constructor (container, map, options) {
-    super(container, map);
+    super();
 
     this.map = map;
 
     /**
      * layer projection
      */
-    this.projection = get(options['projection'] || 'EPSG:3857');
+    this.projection = getProjection(options['projection'] || 'EPSG:3857');
 
     /**
      * map extent
@@ -107,8 +98,9 @@ class CanvasMapRenderer extends MapRenderer {
   }
 
   draw () {
+    const _size = this.map.getSize();
     const _layers = this.map.getLayers();
-    this.context.clearRect(0, 0, this.canvas_.width, this.canvas_.height);
+    this.context.clearRect(0, 0, _size[0], _size[1]);
     for (let i = 0; i < _layers.length; i++) {
       const _layer = _layers[i];
       _layer.load();

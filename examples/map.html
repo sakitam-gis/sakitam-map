@@ -20,8 +20,11 @@
   var map = new smap.Map('map', {
     projection: 'EPSG:3857',
     center: [113.53450137499999, 34.44104525],
-    // extent: [10762435.858420863, 3415567.428002159, 17135450.014862295, 6351564.966545691],
     zoom: 6
+  });
+
+  map.on('load', function (event, data) {
+    console.log(event, data)
   });
 
   var layer = new smap.layer.TileLayer({
@@ -29,7 +32,9 @@
   });
 
   var zoom = new smap.interactions.WheelZoom();
+  var drag = new smap.interactions.DragPan();
   map.addInteraction(zoom);
+  map.addInteraction(drag);
   map.addLayer(layer);
 </script>
 </body>
