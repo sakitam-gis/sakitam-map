@@ -1,17 +1,17 @@
 import { createCanvas, setStyle } from '../../utils'
 import MapRenderer from '../Map'
-import {resolutions} from '../../proj/constants';
+import { get } from '../../proj'
 
 class CanvasMapRenderer extends MapRenderer {
   /**
    * create render
    * @param container
    * @param map
-   * @param extent
+   * @param options
    * @returns {CanvasMapRenderer}
    */
-  static create = (container, map, extent) => {
-    return new CanvasMapRenderer(container, map, extent);
+  static create = (container, map, options = {}) => {
+    return new CanvasMapRenderer(container, map, options);
   };
 
   /**
@@ -27,13 +27,28 @@ class CanvasMapRenderer extends MapRenderer {
    * constructor
    * @param container
    * @param map
-   * @param extent
+   * @param options
    */
-  constructor (container, map, extent) {
+  constructor (container, map, options) {
     super(container, map);
 
     this.map = map;
-    this.extent = extent;
+
+    /**
+     * layer projection
+     */
+    this.projection = get(options['projection'] || 'EPSG:3857');
+
+    /**
+     * map extent
+     * @type {*|string}
+     */
+    this.extent = options['extent'] || this.projection.getFullExtent();
+
+    /**
+     * map size
+     * @type {*|string}
+     */
     const size = map.getSize();
 
     /**
@@ -56,12 +71,6 @@ class CanvasMapRenderer extends MapRenderer {
     container.insertBefore(this.canvas_, container.childNodes[0] || null);
 
     /**
-     * @private
-     * @type {boolean}
-     */
-    this.renderedVisible_ = true;
-
-    /**
      * 渲染类型
      * @type {string}
      * @private
@@ -71,7 +80,7 @@ class CanvasMapRenderer extends MapRenderer {
     /**
      * resolutions
      */
-    this.resolutions = resolutions;
+    this.resolutions = options['resolutions'] || this.projection.getResolutions();
 
     this.resolution = (this.extent[2] - this.extent[0]) / (this.canvas_.width);
     for (let i in this.resolutions) {

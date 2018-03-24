@@ -6,8 +6,7 @@ const _options = {
   EXTENT: [
     -HALF_SIZE, -HALF_SIZE,
     HALF_SIZE, HALF_SIZE
-  ],
-  WORLD_EXTENT: [-180, -85, 180, 85]
+  ]
 };
 
 class EPSG3857 extends Projection {
@@ -16,8 +15,15 @@ class EPSG3857 extends Projection {
       code: code,
       units: Units.METERS,
       extent: _options.EXTENT,
-      global: true,
-      worldExtent: _options.WORLD_EXTENT,
+      fullExtent: _options.EXTENT,
+      resolutions: (function () {
+        const resolutions = [];
+        const d = 2 * 6378137 * Math.PI;
+        for (let i = 0; i < 21; i++) {
+          resolutions[i] = d / (256 * Math.pow(2, i));
+        }
+        return resolutions;
+      })(),
       getPointResolution: function (resolution, point) {
         return resolution / cosh(point[1] / RADIUS);
       }

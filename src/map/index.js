@@ -13,6 +13,13 @@ class Map extends Observable {
     this._layers = options.layers || [];
 
     /**
+     * Interactions
+     * @type {*|Array}
+     * @private
+     */
+    this._interactions = options['interactions'] || [];
+
+    /**
      * options
      * @type {{}}
      */
@@ -89,7 +96,7 @@ class Map extends Observable {
    * @private
    */
   _initRender (target) {
-    this.renderer = CanvasMapRenderer.create(this.layersContent_, this, this.options.extent);
+    this.renderer = CanvasMapRenderer.create(this.layersContent_, this, this.options);
     this.dispatch('load', this.renderer);
   }
 
@@ -160,6 +167,22 @@ class Map extends Observable {
   }
 
   /**
+   * add interaction
+   * @param interaction
+   */
+  addInteraction (interaction) {
+    this._interactions.push(interaction);
+  }
+
+  /**
+   * get interaction from map
+   * @returns {*|Array}
+   */
+  getInteractions () {
+    return this._interactions;
+  }
+
+  /**
    * remove layer from map
    * @param layer
    * @returns {*}
@@ -219,8 +242,19 @@ class Map extends Observable {
    * @param _type
    */
   handleBrowserEvent (browserEvent, _type) {
+    const interactionsArray = this.getInteractions();
     const type = _type || browserEvent.type;
     console.log(type, this)
+    for (let i = interactionsArray.length - 1; i >= 0; i--) {
+      const interaction = interactionsArray[i];
+      if (!interaction.getActive()) {
+        continue;
+      }
+      const cont = interaction.handleEvent(browserEvent);
+      if (!cont) {
+        break;
+      }
+    }
   }
 }
 

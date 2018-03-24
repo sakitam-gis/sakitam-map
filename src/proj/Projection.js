@@ -20,10 +20,11 @@ class Projection {
     this.extent_ = options.extent !== undefined ? options.extent : null;
 
     /**
+     * full extent
+     * @type {null}
      * @private
-     * @type {Array}
      */
-    this.worldExtent_ = options.worldExtent !== undefined ? options.worldExtent : null;
+    this.fullExtent_ = options.fullExtent !== undefined ? options.fullExtent : null;
 
     /**
      * @private
@@ -33,15 +34,14 @@ class Projection {
 
     /**
      * @private
-     * @type {boolean}
-     */
-    this.global_ = options.global !== undefined ? options.global : false;
-
-    /**
-     * @private
      * @type {function(number):number|undefined}
      */
     this.getPointResolutionFunc_ = options.getPointResolution;
+
+    /**
+     * resolutions
+     */
+    this.resolutions_ = options.resolutions;
 
     /**
      * @private
@@ -64,6 +64,10 @@ class Projection {
     return this.extent_;
   }
 
+  getFullExtent (extent) {
+    return this.fullExtent_;
+  }
+
   getUnits () {
     return this.units_;
   }
@@ -72,20 +76,16 @@ class Projection {
     return this.metersPerUnit_ || METERS_PER_UNIT[this.units_];
   }
 
-  getWorldExtent () {
-    return this.worldExtent_;
+  getResolutions () {
+    return this.resolutions_;
+  }
+
+  setResolutions (resolutions) {
+    this.resolutions_ = resolutions
   }
 
   getAxisOrientation () {
     return this.axisOrientation_;
-  }
-
-  isGlobal () {
-    return this.global_;
-  }
-
-  setGlobal (global) {
-    this.global_ = global;
   }
 
   getDefaultTileGrid () {
@@ -100,8 +100,8 @@ class Projection {
     this.extent_ = extent;
   }
 
-  setWorldExtent (worldExtent) {
-    this.worldExtent_ = worldExtent;
+  setFullExtent (extent) {
+    this.fullExtent_ = extent;
   }
 
   setGetPointResolution (func) {

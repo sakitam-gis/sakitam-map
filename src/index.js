@@ -5,5 +5,6 @@ import ajax from './utils/ajax'
 import Map from './map'
 import * as layer from './layer'
 import * as proj from './proj'
+import * as interactions from './interactions'
 
-export { ajax, utils, Map, layer, proj }
+export { ajax, utils, Map, layer, interactions, proj }

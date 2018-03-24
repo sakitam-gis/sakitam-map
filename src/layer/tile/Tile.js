@@ -8,14 +8,13 @@ class Tile extends Observable {
     this.tile = new Image();
     ajax.getImage(this.tile, url);
     this.tile.onload = function () {
-      that.update();
+      that.getTileOffset();
       that.isLoad = true;
       that.dispatch('load', this);
     };
     if (crossOrigin) {
       this.tile.crossOrigin = 'Anonymous'
     }
-    this.offset = [0, 0];
     this.xmin = xmin;
     this.ymax = ymax;
     this.x = x;
@@ -25,11 +24,15 @@ class Tile extends Observable {
     this.layer = context;
   }
 
-  update () {
+  /**
+   * get tile offset
+   * @returns {*[]}
+   */
+  getTileOffset () {
     const map = this.layer.getMap();
     if (this.layer.getMap()) {
       const origin = map.getOrigin();
-      this.offset = [(this.xmin - origin[0]) / map.getResolution(), (origin[1] - this.ymax) / map.getResolution()];
+      return [(this.xmin - origin[0]) / map.getResolution(), (origin[1] - this.ymax) / map.getResolution()];
     }
   }
 
@@ -47,14 +50,6 @@ class Tile extends Observable {
    */
   getImage () {
     return this.tile
-  }
-
-  /**
-   * offset
-   * @returns {*[]}
-   */
-  getOffset () {
-    return this.offset;
   }
 }
 
