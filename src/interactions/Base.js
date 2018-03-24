@@ -21,6 +21,22 @@ class Base extends Observable {
   setActive (active) {
     this._active = active;
   }
+
+  /**
+   * set map
+   * @param map
+   */
+  setMap (map) {
+    this._map = map;
+  }
+
+  /**
+   * get map
+   * @returns {*}
+   */
+  getMap () {
+    return this._map;
+  }
 }
 
 export default Base

@@ -114,6 +114,31 @@ class CanvasMapRenderer extends MapRenderer {
       _layer.load();
     }
   }
+
+  /**
+   * set resolution
+   * @param resolution
+   */
+  setResolution (resolution) {
+    this.resolution = resolution;
+  }
+
+  /**
+   * set origin
+   * @param origin
+   */
+  setOrigin (origin) {
+    this.origin = origin;
+  }
+
+  /**
+   * extent
+   * @param extent
+   */
+  setExtent (extent) {
+    this.extent = extent;
+    this.draw();
+  }
 }
 
 export default CanvasMapRenderer

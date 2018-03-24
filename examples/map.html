@@ -28,6 +28,8 @@
     url: 'http://www.google.cn/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}'
   });
 
+  var zoom = new smap.interactions.WheelZoom();
+  map.addInteraction(zoom);
   map.addLayer(layer);
 </script>
 </body>

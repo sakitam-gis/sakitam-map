@@ -100,6 +100,11 @@ class Map extends Observable {
     this.dispatch('load', this.renderer);
   }
 
+  /**
+   * get coordinates from pixel
+   * @param pixel
+   * @returns {*[]}
+   */
   getCoordinateFromPixel (pixel) {
     let x = pixel[0] * this.renderer.resolution + this.renderer.origin[0];
     let y = this.renderer.origin[1] - pixel[1] * this.renderer.resolution;
@@ -128,6 +133,9 @@ class Map extends Observable {
     return this.setCursor(null);
   }
 
+  /**
+   * dispose events internal
+   */
   disposeInternal () {
     off(this.viewport_, 'contextmenu', this.handleBrowserEvent, this);
     off(this.viewport_, 'wheel', this.handleBrowserEvent, this);
@@ -171,6 +179,7 @@ class Map extends Observable {
    * @param interaction
    */
   addInteraction (interaction) {
+    interaction.setMap(this);
     this._interactions.push(interaction);
   }
 
