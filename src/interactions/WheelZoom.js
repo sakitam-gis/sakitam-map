@@ -1,6 +1,5 @@
 import Base from './Base';
-import { preventDefault, checkBrowser } from '../utils';
-import { getForViewAndSize } from '../proj/extent'
+import { preventDefault } from '../utils';
 
 class WheelZoom extends Base {
   constructor (options = {}) {
@@ -8,40 +7,23 @@ class WheelZoom extends Base {
     this._active = options.hasOwnProperty('active') ? options['active'] : true;
   }
 
+  /**
+   * handle wheel event
+   * @param event
+   * @returns {boolean}
+   */
   handleEvent (event) {
     const type = event.type;
     if (type !== 'wheel' && type !== 'mousewheel') {
       return true;
     }
     preventDefault(event);
-    let delta;
-    if (type === 'wheel') {
-      delta = event.deltaY;
-      if (checkBrowser() === 'FF' &&
-        event.deltaMode === WheelEvent.DOM_DELTA_PIXEL) {
-        delta /= (window.devicePixelRatio || 1);
-      }
-    } else if (type === 'mousewheel') {
-      delta = -event.wheelDeltaY;
-      if (checkBrowser() === 'Safari') {
-        delta /= 3;
-      }
-    }
-
-    if (delta === 0) {
-      return false;
-    }
     const origin = this._map.getOrigin();
     const coordinates = this._map.getCoordinateFromPixel(this._map.getEventPixel(event));
+    console.log(coordinates)
     const resolutions = this._map.getResolutions();
     const resolution = this._map.getResolution();
     let newResolution = '';
-    // let newResolution = resolution * Math.pow(2, delta / 300);
-    // if (newResolution < resolutions[resolutions.length - 1]) {
-    //   newResolution = Math.max(newResolution, resolutions[resolutions.length - 1] / 1.5);
-    // } else if (newResolution > resolutions[0]) {
-    //   newResolution = Math.min(newResolution, resolutions[0] * 1.5);
-    // }
     if (event.wheelDelta > 0) {
       for (let i = 0; i < resolutions.length; i++) {
         if (resolution > resolutions[i]) {
@@ -73,8 +55,6 @@ class WheelZoom extends Base {
         }
       }
     }
-    console.log(getForViewAndSize(coordinates, newResolution, 0, this._map.getSize()));
-    // this._map.renderer.setExtent(getForViewAndSize(coordinates, newResolution, 0, this._map.getSize()));
     const newOrigin = this._map.getOrigin();
     this._map.renderer.setExtent([
       newOrigin[0],
@@ -82,7 +62,6 @@ class WheelZoom extends Base {
       newOrigin[0] + newResolution * this._map.getSize()[0],
       newOrigin[1]
     ]);
-    return false;
   }
 }
 

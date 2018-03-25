@@ -3,7 +3,7 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta charset="UTF-8">
-  <title>Title</title>
+  <title>map</title>
   <style type="text/css">
     html, body, #map {
       padding: 0px;
@@ -18,36 +18,23 @@
 <script src="../dist/sakitam-map.js"></script>
 <script type="text/javascript">
   var map = new smap.Map('map', {
-    projection: 'EPSG:4326',
-    center: [113.53450137499999, 34.44104525],
-    zoom: 2
+    projection: 'EPSG:3857',
+    zoom: 6
   });
+
   map.on('load', function (event, data) {
     console.log(event, data)
   });
 
-  const radius = 6378137
-  const max = 85.0511287798
-  const radians = Math.PI / 180
+  var layer = new smap.layer.TileLayer({
+    url: 'http://www.google.cn/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}',
+    resolutions: [78271.51696402031, 39135.75848201016, 19567.87924100508, 9783.939620502539, 4891.96981025127, 2445.984905125635, 1222.992452562817, 611.4962262814087, 305.7481131407043, 152.8740565703522, 76.43702828517608, 38.21851414258804, 19.10925707129402, 9.554628535647009],
+    extent: [-20037508.3427892, -20037508.3427892, 20037508.3427892, 20037508.3427892]
+  });
 
-  function mercator (longitude, latitude) {
-    let x = radius * longitude * radians
-    let y = Math.max(Math.min(max, latitude), -max) * radians
-    y = radius * Math.log(Math.tan((Math.PI / 4) + (y / 2)))
-    console.log([x, y])
-    return [x, y]
-  }
-
-  mercator.apply(this, [113.53450137499999, 34.44104525]);
-  var coordOrign = smap.proj.fromLonLat([113.53450137499999, 34.44104525]);
-  console.log(coordOrign)
-  var coordOrign_ = smap.proj.toLonLat(coordOrign);
-  console.log(coordOrign, coordOrign_);
-  smap.ajax.get('mock/593aabdf8ac26d795fc563b1/echarts/traffic', {
-    baseURL: 'https://www.easy-mock.com'
-  }).then(function (res) {
-    console.log(res)
-  })
+  var zoom = new smap.interactions.WheelZoom();
+  map.addInteraction(zoom);
+  map.addLayer(layer);
 </script>
 </body>
 </html>

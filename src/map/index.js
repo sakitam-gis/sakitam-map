@@ -65,7 +65,8 @@ class Map extends Observable {
     this._initRender(target);
     on(this.viewport_, 'contextmenu', this.handleBrowserEvent, this);
     on(this.viewport_, 'wheel', this.handleBrowserEvent, this);
-    on(this.viewport_, 'mousewheel', this.handleBrowserEvent, this)
+    on(this.viewport_, 'mousewheel', this.handleBrowserEvent, this);
+    on(this.viewport_, 'mousedown', this.handleBrowserEvent, this);
   }
 
   /**
@@ -155,7 +156,8 @@ class Map extends Observable {
   disposeInternal () {
     off(this.viewport_, 'contextmenu', this.handleBrowserEvent, this);
     off(this.viewport_, 'wheel', this.handleBrowserEvent, this);
-    off(this.viewport_, 'mousewheel', this.handleBrowserEvent, this)
+    off(this.viewport_, 'mousewheel', this.handleBrowserEvent, this);
+    off(this.viewport_, 'mousedown', this.handleBrowserEvent, this);
   }
 
   /**

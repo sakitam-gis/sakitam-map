@@ -1,17 +1,18 @@
-import ajax from '../../utils/ajax';
+// import ajax from '../../utils/ajax';
 import Observable from '../../events/Observable';
 
 class Tile extends Observable {
   constructor (url, x, y, z, xmin, ymax, context, crossOrigin) {
-    super()
+    super();
     const that = this;
     this.tile = new Image();
-    ajax.getImage(this.tile, url);
+    // ajax.getImage(this.tile, url);
     this.tile.onload = function () {
       that.getTileOffset();
       that.isLoad = true;
       that.dispatch('load', this);
     };
+    this.tile.src = url;
     if (crossOrigin) {
       this.tile.crossOrigin = 'Anonymous'
     }
