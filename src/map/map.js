@@ -1,6 +1,6 @@
-import { create, setStyle, getTarget, on, off, isNull } from '../utils'
-import CanvasMapRenderer from '../render/canvas/Map'
+import {create, setStyle, getTarget, on, off, isNull, createCanvas} from '../utils'
 import Observable from '../events/Observable';
+import {get as getProjection} from '../proj';
 
 class Map extends Observable {
   constructor (target, options = {}) {
@@ -18,6 +18,28 @@ class Map extends Observable {
      * @private
      */
     this._interactions = options['interactions'] || [];
+
+    /**
+     * layer projection
+     */
+    this.projection = getProjection(options['projection'] || 'EPSG:3857');
+
+    /**
+     * map extent
+     * @type {*|string}
+     */
+    this.extent = options['extent'] || this.projection.getFullExtent();
+
+    /**
+     * resolutions
+     */
+    this.resolutions = options['resolutions'] || this.projection.getResolutions();
+
+    /**
+     * origin
+     * @type {Array}
+     */
+    this.origin = [];
 
     /**
      * options
@@ -39,7 +61,7 @@ class Map extends Observable {
    */
   _createContent (target) {
     this.viewport_ = create('div', 'sakitam-map-container');
-    this.layersContent_ = create('div', 'sakitam-map-layers', this.viewport_);
+    const layersContent_ = create('div', 'sakitam-map-layers', this.viewport_);
     setStyle(this.viewport_, {
       position: 'relative',
       overflow: 'hidden',
@@ -54,19 +76,53 @@ class Map extends Observable {
       width: '100%',
       height: '100%'
     });
+    const _target = getTarget(target);
+    _target.appendChild(this.viewport_);
 
     /**
-     * target
-     * @type {*}
-     * @private
+     * map size
+     * @type {*|string}
      */
-    this._target = getTarget(target);
-    this._target.appendChild(this.viewport_);
-    this._initRender(target);
+    const size = this.getSize();
+
+    /**
+     * @private
+     * @type {CanvasRenderingContext2D}
+     */
+    const canvas_ = createCanvas(size[0], size[1]);
+    setStyle(canvas_, {
+      width: '100%',
+      height: '100%',
+      display: 'block',
+      userSelect: 'none'
+    });
+
+    /**
+     * @private
+     * @type {HTMLCanvasElement}
+     */
+    this.context = canvas_.getContext('2d');
+    layersContent_.insertBefore(canvas_, layersContent_.childNodes[0] || null);
+
+    /**
+     * resolution
+     * @type {number}
+     */
+    this.resolution = (this.extent[2] - this.extent[0]) / (canvas_.width);
+    for (let i in this.resolutions) {
+      if (this.resolutions[i] <= this.resolution) {
+        this.resolution = this.resolutions[i];
+        break;
+      }
+    }
+    this.origin = [this.extent[0], this.extent[3]];
+    this.extent[2] = this.extent[0] + this.resolution * canvas_.width;
+    this.extent[1] = this.extent[3] - this.resolution * canvas_.height;
     on(this.viewport_, 'contextmenu', this.handleBrowserEvent, this);
     on(this.viewport_, 'wheel', this.handleBrowserEvent, this);
     on(this.viewport_, 'mousewheel', this.handleBrowserEvent, this);
     on(this.viewport_, 'mousedown', this.handleBrowserEvent, this);
+    this.draw();
   }
 
   /**
@@ -89,16 +145,6 @@ class Map extends Observable {
       throw new Error('can not get size of container');
     }
     return [width, height];
-  }
-
-  /**
-   * init render
-   * @param target
-   * @private
-   */
-  _initRender (target) {
-    this.renderer = CanvasMapRenderer.create(this.layersContent_, this, this.options);
-    this.dispatch('load', this.renderer);
   }
 
   /**
@@ -128,28 +174,6 @@ class Map extends Observable {
     return [x, y];
   }
 
-  getPixelFromCoordinate (coordinate) {
-  }
-
-  /**
-   * set map cursor
-   * @param cursor
-   * @returns {Map}
-   */
-  setCursor (cursor) {
-    delete this._cursor;
-    this._cursor = cursor;
-    return this;
-  }
-
-  /**
-   * Reset map's cursor style.
-   * @returns {*}
-   */
-  resetCursor () {
-    return this.setCursor(null);
-  }
-
   /**
    * dispose events internal
    */
@@ -158,14 +182,6 @@ class Map extends Observable {
     off(this.viewport_, 'wheel', this.handleBrowserEvent, this);
     off(this.viewport_, 'mousewheel', this.handleBrowserEvent, this);
     off(this.viewport_, 'mousedown', this.handleBrowserEvent, this);
-  }
-
-  /**
-   * 容器
-   * @returns {*}
-   */
-  getTarget () {
-    return this._target;
   }
 
   /**
@@ -183,13 +199,9 @@ class Map extends Observable {
    */
   addLayer (layer) {
     if (!layer) return this;
-    // if (!Array.isArray(layer)) {
-    //   layer = Array.prototype.slice.call(arguments, 0);
-    //   return this.addLayer(layer);
-    // }
     layer.setMap(this);
     this._layers.push(layer);
-    this.renderer.render();
+    this.render();
   }
 
   /**
@@ -216,10 +228,6 @@ class Map extends Observable {
    */
   removeLayer (layer) {
     if (!layer) return this;
-    if (!Array.isArray(layer)) {
-      layer = Array.prototype.slice.call(arguments, 0);
-      return this.removeLayer(layer);
-    }
     const layers = this.getLayers();
     return layers.remove(layer);
   }
@@ -228,7 +236,7 @@ class Map extends Observable {
    * get render context
    */
   getContext () {
-    return this.renderer.context;
+    return this.context;
   }
 
   /**
@@ -236,7 +244,7 @@ class Map extends Observable {
    * @returns {Array}
    */
   getOrigin () {
-    return this.renderer.origin;
+    return this.origin;
   }
 
   /**
@@ -244,7 +252,53 @@ class Map extends Observable {
    * @returns {*|number[]}
    */
   getExtent () {
-    return this.renderer.extent;
+    return this.extent;
+  }
+
+  /**
+   * render
+   */
+  render () {
+    this.draw();
+    window.requestAnimFrame(this.draw.bind(this));
+  }
+
+  /**
+   * draw canvas
+   */
+  draw () {
+    const _size = this.getSize();
+    const _layers = this.getLayers();
+    this.context.clearRect(0, 0, _size[0], _size[1]);
+    for (let i = 0; i < _layers.length; i++) {
+      const _layer = _layers[i];
+      _layer.load();
+    }
+  }
+
+  /**
+   * set resolution
+   * @param resolution
+   */
+  setResolution (resolution) {
+    this.resolution = resolution;
+  }
+
+  /**
+   * set origin
+   * @param origin
+   */
+  setOrigin (origin) {
+    this.origin = origin;
+  }
+
+  /**
+   * extent
+   * @param extent
+   */
+  setExtent (extent) {
+    this.extent = extent;
+    this.draw();
   }
 
   /**
@@ -252,7 +306,7 @@ class Map extends Observable {
    * @returns {*}
    */
   getResolutions () {
-    return this.renderer.resolutions;
+    return this.resolutions;
   }
 
   /**
@@ -260,7 +314,7 @@ class Map extends Observable {
    * @returns {*}
    */
   getResolution () {
-    return this.renderer.resolution;
+    return this.resolution;
   }
 
   /**

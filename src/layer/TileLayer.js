@@ -145,9 +145,6 @@ class TileLayer extends Base {
     }
   }
 
-  zoomify () {
-  }
-
   /**
    * set map
    * @param map

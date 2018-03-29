@@ -39,7 +39,7 @@ class DragPan extends Base {
         origin[1] + (coordinates[1] - this.startCoordinates[1]) * resolution
       ];
       this.startCoordinates = coordinates;
-      this._map.renderer.setExtent([
+      this._map.setExtent([
         newOrigin[0],
         newOrigin[1] - resolution * this._map.getSize()[1],
         newOrigin[0] + resolution * this._map.getSize()[0],

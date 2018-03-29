@@ -29,8 +29,8 @@ class WheelZoom extends Base {
         if (resolution > resolutions[i]) {
           newResolution = resolutions[i];
           const scale = resolution / newResolution;
-          this._map.renderer.setResolution(newResolution);
-          this._map.renderer.setOrigin([
+          this._map.setResolution(newResolution);
+          this._map.setOrigin([
             origin[0] + (coordinates[0] - origin[0]) / scale,
             origin[1] + (coordinates[1] - origin[1]) / scale
           ]);
@@ -46,8 +46,8 @@ class WheelZoom extends Base {
             newResolution = resolutions[i - 1];
           }
           const scale = newResolution / resolution;
-          this._map.renderer.setResolution(newResolution);
-          this._map.renderer.setOrigin([
+          this._map.setResolution(newResolution);
+          this._map.setOrigin([
             origin[0] + (coordinates[0] - origin[0]) / (scale - 1),
             origin[1] + (coordinates[1] - origin[1]) / (scale - 1)
           ]);
@@ -56,7 +56,7 @@ class WheelZoom extends Base {
       }
     }
     const newOrigin = this._map.getOrigin();
-    this._map.renderer.setExtent([
+    this._map.setExtent([
       newOrigin[0],
       newOrigin[1] - newResolution * this._map.getSize()[1],
       newOrigin[0] + newResolution * this._map.getSize()[0],
