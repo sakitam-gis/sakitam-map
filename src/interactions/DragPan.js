@@ -22,7 +22,7 @@ class DragPan extends Base {
   handleEvent (event) {
     let stopEvent = false;
     this.draging = true;
-    this.startCoordinates = this._map.getCoordinateFromPixel(this._map.getEventPixel(event));
+    this.startCoordinates = this.getMap().getCoordinateFromPixel(this.getMap().getEventPixel(event));
     on(window.document, 'mousemove', this.handleMouseMove, this);
     on(window.document, 'mouseup', this.handleMouseUp, this);
     return !stopEvent;
@@ -31,18 +31,18 @@ class DragPan extends Base {
   handleMouseMove (event) {
     if (event.ctrlKey || event.button !== 0) return;
     if (this.draging) {
-      const origin = this._map.getOrigin();
-      const resolution = this._map.getResolution();
-      const coordinates = this._map.getCoordinateFromPixel(this._map.getEventPixel(event));
+      const origin = this.getMap().getOrigin();
+      const resolution = this.getMap().getResolution();
+      const coordinates = this.getMap().getCoordinateFromPixel(this.getMap().getEventPixel(event));
       const newOrigin = [
         origin[0] - (coordinates[0] - this.startCoordinates[0]) * resolution,
         origin[1] + (coordinates[1] - this.startCoordinates[1]) * resolution
       ];
       this.startCoordinates = coordinates;
-      this._map.setExtent([
+      this.getMap().setExtent([
         newOrigin[0],
-        newOrigin[1] - resolution * this._map.getSize()[1],
-        newOrigin[0] + resolution * this._map.getSize()[0],
+        newOrigin[1] - resolution * this.getMap().getSize()[1],
+        newOrigin[0] + resolution * this.getMap().getSize()[0],
         newOrigin[1]
       ]);
     }

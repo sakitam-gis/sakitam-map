@@ -14,23 +14,25 @@ class WheelZoom extends Base {
    */
   handleEvent (event) {
     const type = event.type;
+    const _map = this.getMap();
+    if (!_map) return;
     if (type !== 'wheel' && type !== 'mousewheel') {
       return true;
     }
     preventDefault(event);
-    const origin = this._map.getOrigin();
-    const coordinates = this._map.getCoordinateFromPixel(this._map.getEventPixel(event));
+    const origin = _map.getOrigin();
+    const coordinates = _map.getCoordinateFromPixel(_map.getEventPixel(event));
     console.log(coordinates)
-    const resolutions = this._map.getResolutions();
-    const resolution = this._map.getResolution();
+    const resolutions = _map.getResolutions();
+    const resolution = _map.getResolution();
     let newResolution = '';
     if (event.wheelDelta > 0) {
       for (let i = 0; i < resolutions.length; i++) {
         if (resolution > resolutions[i]) {
           newResolution = resolutions[i];
           const scale = resolution / newResolution;
-          this._map.setResolution(newResolution);
-          this._map.setOrigin([
+          _map.setResolution(newResolution);
+          _map.setOrigin([
             origin[0] + (coordinates[0] - origin[0]) / scale,
             origin[1] + (coordinates[1] - origin[1]) / scale
           ]);
@@ -46,8 +48,8 @@ class WheelZoom extends Base {
             newResolution = resolutions[i - 1];
           }
           const scale = newResolution / resolution;
-          this._map.setResolution(newResolution);
-          this._map.setOrigin([
+          _map.setResolution(newResolution);
+          _map.setOrigin([
             origin[0] + (coordinates[0] - origin[0]) / (scale - 1),
             origin[1] + (coordinates[1] - origin[1]) / (scale - 1)
           ]);
@@ -55,11 +57,11 @@ class WheelZoom extends Base {
         }
       }
     }
-    const newOrigin = this._map.getOrigin();
-    this._map.setExtent([
+    const newOrigin = _map.getOrigin();
+    _map.setExtent([
       newOrigin[0],
-      newOrigin[1] - newResolution * this._map.getSize()[1],
-      newOrigin[0] + newResolution * this._map.getSize()[0],
+      newOrigin[1] - newResolution * _map.getSize()[1],
+      newOrigin[0] + newResolution * _map.getSize()[0],
       newOrigin[1]
     ]);
   }

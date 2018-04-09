@@ -27,13 +27,13 @@
   });
 
   var layer = new smap.layer.TileLayer({
-    url: 'http://www.google.cn/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}',
-    resolutions: [78271.51696402031, 39135.75848201016, 19567.87924100508, 9783.939620502539, 4891.96981025127, 2445.984905125635, 1222.992452562817, 611.4962262814087, 305.7481131407043, 152.8740565703522, 76.43702828517608, 38.21851414258804, 19.10925707129402, 9.554628535647009],
-    extent: [-20037508.3427892, -20037508.3427892, 20037508.3427892, 20037508.3427892]
+    url: 'http://www.google.cn/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}'
   });
 
   var zoom = new smap.interactions.WheelZoom();
+  var drag = new smap.interactions.DragPan();
   map.addInteraction(zoom);
+  map.addInteraction(drag);
   map.addLayer(layer);
 </script>
 </body>
