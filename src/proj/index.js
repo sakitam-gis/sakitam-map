@@ -97,9 +97,6 @@ const getPointResolution = function (projection, resolution, point, units) {
     if ((units === Units.DEGREES && !units) || (units === Units.DEGREES)) {
       pointResolution = resolution;
     } else {
-      // Estimate point resolution by transforming the center pixel to EPSG:4326,
-      // measuring its width and height on the normal sphere, and taking the
-      // average of the width and height.
       const toEPSG4326 = getTransformFromProjections(projection, get('EPSG:4326'));
       let vertices = [
         point[0] - resolution / 2, point[1],

@@ -1,12 +1,51 @@
 import { clamp } from '../utils'
 import Observable from '../events/Observable';
+import {get} from "../proj";
 
 class Base extends Observable {
   constructor (options = {}) {
     super();
+
+    /**
+     * this map
+     * @type {null}
+     * @private
+     */
+    this._map = null;
+
+    /**
+     * current layer opacity
+     */
     this.opacity = clamp(options['opacity'], 0, 1);
-    this.extent = options['extent'];
-    this.zIndex = options['zIndex'];
+
+    /**
+     * is can cross origin
+     * @type {boolean}
+     */
+    this.crossOrigin = !!options.crossOrigin;
+
+    /**
+     * layer projection
+     */
+    this.projection = get(options['projection'] || 'EPSG:3857');
+
+    /**
+     * layer extent
+     * @type {*|*[]}
+     */
+    this.extent = options['extent'] || this.projection.getExtent();
+
+    /**
+     * tile origin
+     * @type {*}
+     */
+    this.origin = options.origin || [this.extent[0], this.extent[3]]; // left top
+
+    /**
+     * layer zIndex
+     * @type {*|number}
+     */
+    this.zIndex = options['zIndex'] || 0;
   }
 
   /**
@@ -64,6 +103,22 @@ class Base extends Observable {
    */
   setZIndex (zindex) {
     this.zIndex = zindex;
+  }
+
+  /**
+   * set map
+   * @param map
+   */
+  setMap (map) {
+    this.map = map;
+  }
+
+  /**
+   * get map
+   * @returns {*}
+   */
+  getMap () {
+    return this.map;
   }
 }
 

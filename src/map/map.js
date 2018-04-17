@@ -36,6 +36,23 @@ class Map extends Observable {
     this.resolutions = options['resolutions'] || this.projection.getResolutions();
 
     /**
+     * max resolution
+     */
+    this.maxResolution = options['maxResolution'] || this.resolutions[0];
+
+    /**
+     * min resolution
+     */
+    this.minResolution = options['minResolution'] || this.resolutions[this.resolutions.length - 1];
+
+    /**
+     * center
+     * @type {*|number[]}
+     * @private
+     */
+    this._center = options['center'] || [0, 0];
+
+    /**
      * origin
      * @type {Array}
      */
@@ -89,7 +106,7 @@ class Map extends Observable {
      * @private
      * @type {CanvasRenderingContext2D}
      */
-    const canvas_ = createCanvas(size[0], size[1]);
+    const canvas_ = createCanvas(size[0], size[1], '');
     setStyle(canvas_, {
       width: '100%',
       height: '100%',
@@ -285,6 +302,27 @@ class Map extends Observable {
   }
 
   /**
+   * calc current resolution
+   * @param width
+   * @param height
+   * @returns {number}
+   */
+  calcResolution (width, height) {
+    const size = this.getSize();
+    const resW = width / size[0];
+    const resH = height / size[1];
+    return Math.max(resW, resH);
+  }
+
+  /**
+   * re center
+   * @param center
+   */
+  setCenter (center) {
+    this._center = center;
+  }
+
+  /**
    * set origin
    * @param origin
    */
@@ -299,6 +337,14 @@ class Map extends Observable {
   setExtent (extent) {
     this.extent = extent;
     this.draw();
+  }
+
+  /**
+   * get current view center
+   * @returns {*|number[]}
+   */
+  getCenter () {
+    return this._center;
   }
 
   /**

@@ -1,41 +1,9 @@
 import Base from './Base';
 import Tile from './tile/Tile'
-import { get } from '../proj'
-
+import { isFunction } from '../utils'
 class TileLayer extends Base {
   constructor (options = {}) {
     super(options);
-
-    this.map = null;
-
-    /**
-     * layer projection
-     */
-    this.projection = get(options['projection'] || 'EPSG:3857');
-
-    /**
-     * is can cross origin
-     * @type {boolean}
-     */
-    this.crossOrigin = !!options.crossOrigin;
-
-    /**
-     * layer extent
-     * @type {*|*[]}
-     */
-    this.extent = options['extent'] || this.projection.getExtent();
-
-    /**
-     * tile origin
-     * @type {*}
-     */
-    this.origin = options.origin || [this.extent[0], this.extent[3]]; // left top
-
-    /**
-     * tile size
-     * @type {*|number[]}
-     */
-    this.tileSize = options['tileSize'] || [256, 256];
 
     /**
      * layer service url
@@ -44,16 +12,10 @@ class TileLayer extends Base {
     this.url = options['url'] || '';
 
     /**
-     * layer opacity
-     * @type {*|number}
+     * tile size
+     * @type {*|number[]}
      */
-    this.opacity = options['opacity'] || 1;
-
-    /**
-     * layer zIndex
-     * @type {*|number}
-     */
-    this.zIndex = options['zIndex'] || 0;
+    this.tileSize = options['tileSize'] || [256, 256];
 
     /**
      * 切片缓存
@@ -115,7 +77,7 @@ class TileLayer extends Base {
     const _tiles = [];
     for (let x = params.tileRange[0]; x <= params.tileRange[2]; ++x) {
       for (let y = params.tileRange[1]; y <= params.tileRange[3]; ++y) {
-        const url = this.url.replace('{z}', params['zoom']).replace('{x}', x).replace('{y}', y);
+        const url = this._getTileUrl(x, y, params['zoom']);
         let xmin = x * this.tileSize[0] * params['resolution'] + this.origin[0];
         let ymax = this.origin[1] - y * this.tileSize[1] * params['resolution'];
         _tiles.push(new Tile(url, x, y, this.zoom, xmin, ymax, this, this.crossOrigin));
@@ -146,19 +108,19 @@ class TileLayer extends Base {
   }
 
   /**
-   * set map
-   * @param map
-   */
-  setMap (map) {
-    this.map = map;
-  }
-
-  /**
-   * get map
+   * get each tile url
+   * @param idxX
+   * @param idxY
+   * @param zoom
    * @returns {*}
+   * @private
    */
-  getMap () {
-    return this.map;
+  _getTileUrl (idxX, idxY, zoom) {
+    if (isFunction(this.url)) {
+      return this.url(zoom, idxX, idxY);
+    } else {
+      return this.url.replace('{z}', zoom).replace('{x}', idxX).replace('{y}', idxY);
+    }
   }
 }
 
