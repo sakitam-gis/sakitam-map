@@ -108,6 +108,48 @@ class TileLayer extends Base {
   }
 
   /**
+   * get tile show extent
+   * @param idxX
+   * @param idxY
+   * @param zoom
+   * @returns {*[]}
+   * @private
+   */
+  _getTileExtent (idxX, idxY, zoom) {
+    const map = this.getMap();
+    const resolutions = map.getResolutions();
+    const resolution = Number(resolutions[zoom]);
+    if (!resolution) {
+      return [];
+    }
+    const dx = this.tileSize[0] * resolution * idxX;
+    const dy = this.tileSize[1] * resolution * idxY;
+    const x = dx + this.origin[0];
+    const y = this.origin[1] - dy;
+    return [x, y - this.tileSize[1] * resolution, x + this.tileSize[0] * resolution, y];
+  }
+
+  /**
+   * get tile index
+   * @param x
+   * @param y
+   * @param zoom
+   * @returns {*[]}
+   * @private
+   */
+  _getTileIndex (x, y, zoom) {
+    const map = this.getMap();
+    const resolutions = map.getResolutions();
+    const resolution = Number(resolutions[zoom]);
+    if (!resolution) {
+      return [-1, -1];
+    }
+    const dx = x - this.origin[0];
+    const dy = this.origin[1] - y;
+    return [Math.floor(dx / this.tileSize[0] * resolution), Math.floor(dy / this.tileSize[1] * resolution)];
+  }
+
+  /**
    * get each tile url
    * @param idxX
    * @param idxY
@@ -121,6 +163,30 @@ class TileLayer extends Base {
     } else {
       return this.url.replace('{z}', zoom).replace('{x}', idxX).replace('{y}', idxY);
     }
+  }
+
+  /**
+   * get current nearest zoom
+   * @param greater
+   * @returns {number}
+   * @private
+   */
+  _getNearestZoom (greater) {
+    const map = this.getMap();
+    const resolution = map.getResolution();
+    const resolutions = map.getResolutions();
+    let [newResolution, lastZoom] = [undefined, 0]
+    for (let i = 0, length = resolutions.length; i < length; i++) {
+      newResolution = resolutions[i];
+      if (resolution > newResolution) {
+        return greater ? i : lastZoom;
+      } else if (resolution <= newResolution && resolution > newResolution) {
+        return i;
+      } else {
+        lastZoom = i;
+      }
+    }
+    return 0;
   }
 }
 
