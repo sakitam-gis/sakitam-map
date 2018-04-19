@@ -82,7 +82,67 @@ const getForViewAndSize = (center, resolution, rotation, size, extent) => {
     extent);
 };
 
+/**
+ * check is intersect
+ * @param extent
+ * @param extent_
+ * @returns {*}
+ */
+const intersect = (extent, extent_) => {
+  if (!extent && !extent_) {
+    return;
+  }
+  if (extent && extent_) {
+    let xmin = Math.max(extent[0], extent_[0]);
+    let ymin = Math.max(extent[1], extent_[1]);
+    let xmax = Math.min(extent[2], extent_[2]);
+    let ymax = Math.min(extent[3], extent_[3]);
+    if (!(xmin >= xmax || ymin >= ymax)) {
+      return [xmin, ymin, xmax, ymax];
+    }
+  } else {
+    return extent || extent_;
+  }
+};
+
+/**
+ * check is overlaps
+ * @param extent
+ * @param extent_
+ * @param tolerance
+ * @returns {boolean}
+ */
+const overlaps = (extent, extent_, tolerance = 0) => {
+  if (!extent && !extent_) {
+    return false;
+  }
+  return !(extent[0] > extent_[2] + tolerance ||
+    extent[2] < extent_[0] - tolerance ||
+    extent[1] > extent_[3] + tolerance ||
+    extent[3] < extent_[1] - tolerance);
+};
+
+/**
+ * check extent is contains point
+ * @param extent
+ * @param point
+ * @param tolerance
+ * @returns {boolean}
+ */
+const contains = (extent, point, tolerance = 0) => {
+  if (!extent && !point) {
+    return false;
+  }
+  return !(point[0] - extent[2] > tolerance ||
+    extent[0] - point[0] > tolerance ||
+    point[1] - extent[3] > tolerance ||
+    extent[1] - point[1] > tolerance);
+};
+
 export {
+  contains,
+  overlaps,
+  intersect,
   getBBOX,
   getExtent,
   applyTransform,

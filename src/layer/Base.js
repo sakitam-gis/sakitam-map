@@ -1,6 +1,6 @@
 import { clamp } from '../utils'
 import Observable from '../events/Observable';
-import {get} from "../proj";
+import {get} from '../proj';
 
 class Base extends Observable {
   constructor (options = {}) {
