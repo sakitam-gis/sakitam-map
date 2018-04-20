@@ -293,8 +293,8 @@ class Map extends Observable {
    * render
    */
   render () {
-    this.draw();
-    window.requestAnimFrame(this.draw.bind(this));
+    window.cancelAnimFrame(this._renderFrame);
+    this._renderFrame = window.requestAnimFrame(this.draw, true, this);
   }
 
   /**
@@ -306,6 +306,9 @@ class Map extends Observable {
     this.context.clearRect(0, 0, _size[0], _size[1]);
     for (let i = 0; i < _layers.length; i++) {
       const _layer = _layers[i];
+      if (!_layer) {
+        continue;
+      }
       _layer.load();
     }
   }
@@ -337,6 +340,24 @@ class Map extends Observable {
    */
   setCenter (center) {
     this._center = center;
+    this.render();
+  }
+
+  /**
+   * set zoom
+   * @param zoom
+   */
+  setZoom (zoom) {
+    this._zoom = zoom;
+    this.render();
+  }
+
+  /**
+   * zoom
+   * @returns {*|number}
+   */
+  getZoom () {
+    return this._zoom;
   }
 
   /**

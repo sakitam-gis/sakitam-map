@@ -49,8 +49,6 @@ class TileLayer extends Base {
       context.globalAlpha = this.getOpacity();
       for (let i = 0; i < this.tiles.length; i++) {
         const tile = this.tiles[i];
-        tile.un('load', this.render, this);
-        tile.on('load', this.render, this);
         this._drawTile(tile, context)
       }
       context.restore();
@@ -65,7 +63,7 @@ class TileLayer extends Base {
     const size = map.getSize();
     const center = map.getCenter();
     const resolutions = map.getResolutions();
-    const zoom = this._getNearestZoom(true);
+    const zoom = this._getNearestZoom(false);
     const layerResolution = resolutions[zoom];
     let tiles = this._getTilesInternal();
     this.setExtent([
@@ -111,14 +109,15 @@ class TileLayer extends Base {
     }
     const map = this.getMap();
     const mapExtent = map.getExtent();
+    const resolution = map.getResolution();
     const resolutions = map.getResolutions();
-    const zoom = this._getNearestZoom(true);
+    const zoom = this._getNearestZoom(false);
     const layerResolution = resolutions[zoom];
     let x = this.origin[0] + parseInt(tile['x']) * this.tileSize[0] * layerResolution;
     let y = this.origin[1] - parseInt(tile['y']) * this.tileSize[1] * layerResolution;
     let [width, height] = [
-      Math.ceil(this.tileSize[0] / resolutions),
-      Math.ceil(this.tileSize[1] / resolutions)
+      Math.ceil(this.tileSize[0] * layerResolution / resolution),
+      Math.ceil(this.tileSize[1] * layerResolution / resolution)
     ];
     let [idxMax, idxMin] = [0, 0];
     const mapWidth = mapExtent[2] - mapExtent[0];
@@ -144,7 +143,7 @@ class TileLayer extends Base {
       if (tile['id'] && (this.tiles.filter(_tile => _tile.id === tile['id'])).length > 0) {
         console.info('exist')
       } else {
-        this.tiles.push(new Tile(tile.url, tile.x, tile.y, tile.z, tile.id, this.crossOrigin))
+        this.tiles.push(new Tile(tile.url, tile.x, tile.y, tile.z, tile.id, this))
       }
     }
   }
@@ -174,7 +173,7 @@ class TileLayer extends Base {
     const center = map.getCenter();
     const mapResolution = map.getResolution();
     const resolutions = map.getResolutions();
-    const zoom = this._getNearestZoom(true);
+    const zoom = this._getNearestZoom(false);
     const layerResolution = resolutions[zoom];
     const scale = layerResolution / mapResolution;
     const scaledTileSize = [this.tileSize[0] * scale, this.tileSize[1] * scale];
@@ -252,7 +251,7 @@ class TileLayer extends Base {
     }
     const dx = x - this.origin[0];
     const dy = this.origin[1] - y;
-    return [Math.floor(dx / this.tileSize[0] * resolution), Math.floor(dy / this.tileSize[1] * resolution)];
+    return [Math.floor(dx / (this.tileSize[0] * resolution)), Math.floor(dy / (this.tileSize[1] * resolution))];
   }
 
   /**

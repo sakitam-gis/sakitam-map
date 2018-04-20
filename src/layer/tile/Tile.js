@@ -2,7 +2,7 @@
 import Observable from '../../events/Observable';
 
 class Tile extends Observable {
-  constructor (url, x, y, z, id, crossOrigin) {
+  constructor (url, x, y, z, id, layer) {
     super();
     const that = this;
     this.tile = new Image();
@@ -10,9 +10,13 @@ class Tile extends Observable {
     this.tile.onload = function () {
       that.isLoad = true;
       that.dispatch('load', this);
+      if (layer.getMap()) {
+        const context = layer.getMap().getContext();
+        layer._drawTile(that, context);
+      }
     };
     this.tile.src = url;
-    if (crossOrigin) {
+    if (layer.crossOrigin) {
       this.tile.crossOrigin = 'Anonymous'
     }
     this.x = x;

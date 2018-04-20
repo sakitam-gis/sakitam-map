@@ -19,7 +19,8 @@
 <script type="text/javascript">
   var map = new smap.Map('map', {
     projection: 'EPSG:3857',
-    zoom: 4
+    zoom: 5,
+    center: [12673975, 4079823]
   });
 
   map.on('load', function (event, data) {
@@ -30,6 +31,15 @@
     url: 'http://www.google.cn/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}'
   });
   map.addLayer(layer);
+
+  document.onkeydown = function (event) {
+    console.log(event)
+    if (event.keyCode === 107) { // +
+      map.setZoom(map.getZoom() + 1)
+    } else if (event.keyCode === 109) { // -
+      map.setZoom(map.getZoom() - 1)
+    }
+  };
 </script>
 </body>
 </html>

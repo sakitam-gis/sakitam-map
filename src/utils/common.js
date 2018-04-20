@@ -275,7 +275,21 @@ const checkBrowser = () => {
   }
 };
 
+/**
+ * bind
+ * @param fn
+ * @param context
+ * @returns {Function}
+ */
+const bind = function (fn, context) {
+  const args = arguments.length > 2 ? Array.prototype.slice.call(arguments, 2) : null;
+  return function() {
+    return fn.apply(context, args || arguments);
+  };
+};
+
 export {
+  bind,
   isDate,
   isNode,
   isBrowser,
