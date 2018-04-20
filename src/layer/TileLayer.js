@@ -1,7 +1,7 @@
 import Base from './Base';
 import Tile from './tile/Tile';
 import { isFunction } from '../utils';
-// import { overlaps, intersect } from '../proj/extent';
+import { overlaps } from '../proj/extent';
 
 class TileLayer extends Base {
   constructor (options = {}) {
@@ -26,27 +26,141 @@ class TileLayer extends Base {
     this.tiles = [];
   }
 
+  /**
+   * load layer
+   * @returns {TileLayer}
+   */
   load () {
     if (!this.getMap()) {
       return this;
     }
+    this.rerender();
     this.render();
     return this;
   }
 
+  /**
+   * render layer
+   */
   render () {
     if (this.getMap()) {
       const context = this.getMap().getContext();
-      this.tiles = this._getTiles();
+      context.save();
+      context.globalAlpha = this.getOpacity();
       for (let i = 0; i < this.tiles.length; i++) {
         const tile = this.tiles[i];
         tile.un('load', this.render, this);
         tile.on('load', this.render, this);
-        if (tile.isLoaded()) {
-          context.drawImage(tile.getImage(), 0, 0, this.tileSize[0], this.tileSize[1], tile.getTileOffset()[0], tile.getTileOffset()[1], this.tileSize[0] / this.scale, this.tileSize[1] / this.scale);
-        }
+        this._drawTile(tile, context)
+      }
+      context.restore();
+    }
+  }
+
+  /**
+   * re render
+   */
+  rerender () {
+    const map = this.getMap();
+    const size = map.getSize();
+    const center = map.getCenter();
+    const resolutions = map.getResolutions();
+    const zoom = this._getNearestZoom(true);
+    const layerResolution = resolutions[zoom];
+    let tiles = this._getTilesInternal();
+    this.setExtent([
+      center[0] - size[0] * layerResolution / 2,
+      center[1] - size[1] * layerResolution / 2,
+      center[0] + size[0] * layerResolution / 2,
+      center[1] + size[1] * layerResolution / 2
+    ]);
+    for (let i = 0; i < tiles.length; i++) {
+      const tile = tiles[i];
+      const tileResolution = resolutions[tile.z];
+      if (tile.z !== zoom) {
+        // self._stopLoadingTile(tile);
+        //
+        // if (!options.keepResample || options.opacity < 1) {
+        //   self._removeTile(key);
+        // }
+      }
+      const tileExtent = [
+        this.origin[0] + tile.x * this.tileSize[0] * tileResolution,
+        this.origin[1] - (tile.y + 1) * this.tileSize[1] * tileResolution,
+        this.origin[0] + (tile.x + 1) * this.tileSize[0] * tileResolution,
+        this.origin[1] - tile.y * this.tileSize[1] * tileResolution
+      ];
+      if (!overlaps(tileExtent, this.getExtent())) {
+        tiles = tiles.filter(_item => _item['id'] !== (tile['z'] + ',' + tile['y'] + ',' + tile['x']))
       }
     }
+    const centerTile = this._getTileIndex(center[0], center[1], zoom);
+    this._sortTiles(tiles, centerTile);
+    this._getTiles(tiles);
+  }
+
+  /**
+   * draw tile
+   * @param tile
+   * @param context
+   * @private
+   */
+  _drawTile (tile, context) {
+    if (!tile.isLoaded()) {
+      return;
+    }
+    const map = this.getMap();
+    const mapExtent = map.getExtent();
+    const resolutions = map.getResolutions();
+    const zoom = this._getNearestZoom(true);
+    const layerResolution = resolutions[zoom];
+    let x = this.origin[0] + parseInt(tile['x']) * this.tileSize[0] * layerResolution;
+    let y = this.origin[1] - parseInt(tile['y']) * this.tileSize[1] * layerResolution;
+    let [width, height] = [
+      Math.ceil(this.tileSize[0] / resolutions),
+      Math.ceil(this.tileSize[1] / resolutions)
+    ];
+    let [idxMax, idxMin] = [0, 0];
+    const mapWidth = mapExtent[2] - mapExtent[0];
+    for (let i = idxMin; i <= idxMax; i++) {
+      let pixel = map.getPixelFromCoordinate([x + i * mapWidth, y]);
+      let [pixelX, pixelY] = [pixel[0], pixel[1]];
+      try {
+        context.drawImage(tile.getImage(), Math.round(pixelX), Math.round(pixelY), width, height);
+      } catch (e) {
+      }
+    }
+  }
+
+  /**
+   * get tile
+   * @param tiles
+   * @returns {Array}
+   * @private
+   */
+  _getTiles (tiles) {
+    for (let i = 0; i < tiles.length; i++) {
+      const tile = tiles[i];
+      if (tile['id'] && (this.tiles.filter(_tile => _tile.id === tile['id'])).length > 0) {
+        console.info('exist')
+      } else {
+        this.tiles.push(new Tile(tile.url, tile.x, tile.y, tile.z, tile.id, this.crossOrigin))
+      }
+    }
+  }
+
+  /**
+   * sort tiles
+   * @param tiles
+   * @param centerTile
+   * @private
+   */
+  _sortTiles (tiles, centerTile) {
+    tiles.sort((a, b) => {
+      let indexX = Math.pow((a[0] - centerTile[0]), 2) + Math.pow((a[1] - centerTile[1]), 2);
+      let indexY = Math.pow((b[0] - centerTile[0]), 2) + Math.pow((b[1] - centerTile[1]), 2);
+      return Math.abs(indexX - indexY);
+    });
   }
 
   /**
@@ -54,7 +168,7 @@ class TileLayer extends Base {
    * @returns {Array}
    * @private
    */
-  _getTiles () {
+  _getTilesInternal () {
     const map = this.getMap();
     const size = map.getSize();
     const center = map.getCenter();
@@ -84,16 +198,16 @@ class TileLayer extends Base {
         //   continue;
         // }
         const url = this._getTileUrl(i, j, zoom);
-        // _tiles.push({
-        //   z: zoom,
-        //   x: i,
-        //   y: j,
-        //   url,
-        //   size: scaledTileSize,
-        //   extent: tileExtent,
-        //   resolution: layerResolution
-        // });
-        _tiles.push(new Tile(url, i, j, zoom, tileExtent[0], tileExtent[3], this, this.crossOrigin))
+        _tiles.push({
+          z: zoom,
+          x: i,
+          y: j,
+          id: zoom + ',' + i + ',' + j,
+          url: url,
+          size: scaledTileSize,
+          extent: tileExtent,
+          resolution: layerResolution
+        });
       }
     }
     return _tiles;

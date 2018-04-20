@@ -53,6 +53,13 @@ class Map extends Observable {
     this._center = options['center'] || [0, 0];
 
     /**
+     * current zoom
+     * @type {*|number}
+     * @private
+     */
+    this._zoom = options['zoom'] || 0;
+
+    /**
      * origin
      * @type {Array}
      */
@@ -125,13 +132,7 @@ class Map extends Observable {
      * resolution
      * @type {number}
      */
-    this.resolution = (this.extent[2] - this.extent[0]) / (canvas_.width);
-    for (let i in this.resolutions) {
-      if (this.resolutions[i] <= this.resolution) {
-        this.resolution = this.resolutions[i];
-        break;
-      }
-    }
+    this.resolution = this.resolutions[this._zoom];
     this.origin = [this.extent[0], this.extent[3]];
     this.extent[2] = this.extent[0] + this.resolution * canvas_.width;
     this.extent[1] = this.extent[3] - this.resolution * canvas_.height;
@@ -188,6 +189,22 @@ class Map extends Observable {
     const _resolution = this.getResolution();
     let x = pixel[0] * _resolution + _origin[0];
     let y = _origin[1] - pixel[1] * _resolution;
+    return [x, y];
+  }
+
+  /**
+   * get pixel from coordinates
+   * @param coordinates
+   * @returns {*[]}
+   */
+  getPixelFromCoordinate (coordinates) {
+    const size = this.getSize();
+    const center = this.getCenter();
+    const resolution = this.getResolution();
+    let [x, y] = [
+      size[0] / 2 + (coordinates[0] - center[0]) / resolution,
+      size[1] / 2 - (coordinates[1] - center[1]) / resolution
+    ];
     return [x, y];
   }
 

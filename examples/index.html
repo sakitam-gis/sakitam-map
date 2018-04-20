@@ -19,7 +19,7 @@
 <script type="text/javascript">
   var map = new smap.Map('map', {
     projection: 'EPSG:3857',
-    zoom: 6
+    zoom: 4
   });
 
   map.on('load', function (event, data) {
@@ -29,11 +29,6 @@
   var layer = new smap.layer.TileLayer({
     url: 'http://www.google.cn/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}'
   });
-
-  var zoom = new smap.interactions.WheelZoom();
-  var drag = new smap.interactions.DragPan();
-  map.addInteraction(zoom);
-  map.addInteraction(drag);
   map.addLayer(layer);
 </script>
 </body>
