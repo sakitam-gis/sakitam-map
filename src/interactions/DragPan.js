@@ -31,19 +31,16 @@ class DragPan extends Base {
   handleMouseMove (event) {
     if (event.ctrlKey || event.button !== 0) return;
     if (this.draging) {
-      const origin = this.getMap().getOrigin();
-      const resolution = this.getMap().getResolution();
       const coordinates = this.getMap().getCoordinateFromPixel(this.getMap().getEventPixel(event));
-      const newOrigin = [
-        origin[0] - (coordinates[0] - this.startCoordinates[0]) * resolution,
-        origin[1] + (coordinates[1] - this.startCoordinates[1]) * resolution
+      let _offset = [
+        coordinates[0] - this.startCoordinates[0],
+        coordinates[1] - this.startCoordinates[1]
       ];
+      const center = this.getMap().getCenter();
       this.startCoordinates = coordinates;
-      this.getMap().setExtent([
-        newOrigin[0],
-        newOrigin[1] - resolution * this.getMap().getSize()[1],
-        newOrigin[0] + resolution * this.getMap().getSize()[0],
-        newOrigin[1]
+      this.getMap().setCenter([
+        center[0] - _offset[0],
+        center[1] - _offset[1]
       ]);
     }
   }
