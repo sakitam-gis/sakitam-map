@@ -1,4 +1,4 @@
-import {create, setStyle, getTarget, on, off, isNull, createCanvas} from '../utils'
+import {create, setStyle, getTarget, isNull, createCanvas} from '../utils'
 import Observable from '../events/Observable';
 import {get as getProjection} from '../proj';
 
@@ -136,11 +136,15 @@ class Map extends Observable {
     this.origin = [this.extent[0], this.extent[3]];
     this.extent[2] = this.extent[0] + this.resolution * canvas_.width;
     this.extent[1] = this.extent[3] - this.resolution * canvas_.height;
-    on(this.viewport_, 'contextmenu', this.handleBrowserEvent, this);
-    on(this.viewport_, 'wheel', this.handleBrowserEvent, this);
-    on(this.viewport_, 'mousewheel', this.handleBrowserEvent, this);
-    on(this.viewport_, 'mousedown', this.handleBrowserEvent, this);
     this.draw();
+  }
+
+  /**
+   * 获取当前视图
+   * @returns {*}
+   */
+  getViewport () {
+    return this.viewport_
   }
 
   /**
@@ -209,16 +213,6 @@ class Map extends Observable {
   }
 
   /**
-   * dispose events internal
-   */
-  disposeInternal () {
-    off(this.viewport_, 'contextmenu', this.handleBrowserEvent, this);
-    off(this.viewport_, 'wheel', this.handleBrowserEvent, this);
-    off(this.viewport_, 'mousewheel', this.handleBrowserEvent, this);
-    off(this.viewport_, 'mousedown', this.handleBrowserEvent, this);
-  }
-
-  /**
    * get layer group
    * @returns {Array}
    */
@@ -245,6 +239,15 @@ class Map extends Observable {
   addInteraction (interaction) {
     interaction.setMap(this);
     this._interactions.push(interaction);
+  }
+
+  /**
+   * remove interaction
+   * @param interaction
+   */
+  removeInteraction (interaction) {
+    interaction.setMap(undefined);
+    this._interactions = this._interactions.filter(_item => _item.getType() !== interaction.getType())
   }
 
   /**
@@ -430,27 +433,6 @@ class Map extends Observable {
       }
     }
     return greater ? lastResolution * 2 : lastResolution / 2;
-  }
-
-  /**
-   * handle event
-   * @param browserEvent
-   * @param _type
-   */
-  handleBrowserEvent (browserEvent, _type) {
-    const interactionsArray = this.getInteractions();
-    const type = _type || browserEvent.type;
-    console.log(type, this)
-    for (let i = interactionsArray.length - 1; i >= 0; i--) {
-      const interaction = interactionsArray[i];
-      if (!interaction.getActive()) {
-        continue;
-      }
-      const cont = interaction.handleEvent(browserEvent);
-      if (!cont) {
-        break;
-      }
-    }
   }
 
   animate (options = {}) {

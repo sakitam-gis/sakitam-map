@@ -15,7 +15,7 @@
 </head>
 <body>
 <div id="map"></div>
-<script src="../dist/sakitam-map.js"></script>
+<script src="../../dist/sakitam-map.js"></script>
 <script type="text/javascript">
   var map = new smap.Map('map', {
     projection: 'EPSG:3857',
@@ -23,26 +23,12 @@
     center: [12673975, 4079823]
   });
 
-  map.on('load', function (event, data) {
-    console.log(event, data)
-  });
-
   var layer = new smap.layer.TileLayer({
     url: 'http://www.google.cn/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}'
   });
   map.addLayer(layer);
-
-  document.onkeydown = function (event) {
-    console.log(event)
-    if (event.keyCode === 107) { // +
-      map.setZoom(map.getZoom() + 1)
-    } else if (event.keyCode === 109) { // -
-      map.setZoom(map.getZoom() - 1)
-    }
-  };
-
-  var drag = new smap.interactions.DragPan();
-  map.addInteraction(drag);
+  var zoom = new smap.interactions.WheelZoom();
+  map.addInteraction(zoom);
 </script>
 </body>
 </html>

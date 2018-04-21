@@ -3,8 +3,31 @@ import Observable from '../events/Observable';
 class Base extends Observable {
   constructor (options = {}) {
     super()
+
+    /**
+     * is active
+     * @type {boolean}
+     * @private
+     */
     this._active = options.hasOwnProperty('active') ? options['active'] : true;
+
+    /**
+     * interacyion type
+     * @type {string}
+     * @private
+     */
+    this._type = '';
   }
+
+  /**
+   * mounted interaction
+   */
+  mounted () {}
+
+  /**
+   * destroyed interaction
+   */
+  destroyed () {}
 
   /**
    * check interaction is active
@@ -27,7 +50,13 @@ class Base extends Observable {
    * @param map
    */
   setMap (map) {
-    this._map = map;
+    if (map) {
+      this._map = map;
+      this.mounted();
+    } else {
+      this.destroyed();
+      this._map = map;
+    }
   }
 
   /**
@@ -36,6 +65,14 @@ class Base extends Observable {
    */
   getMap () {
     return this._map;
+  }
+
+  /**
+   * interaction type
+   * @returns {*}
+   */
+  getType () {
+    return this._type;
   }
 }
 

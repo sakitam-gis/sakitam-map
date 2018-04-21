@@ -1,10 +1,29 @@
 import Base from './Base';
-import { preventDefault } from '../utils';
+import {off, on, preventDefault} from '../utils';
 
 class WheelZoom extends Base {
   constructor (options = {}) {
     super(options);
     this._active = options.hasOwnProperty('active') ? options['active'] : true;
+
+    /**
+     * type
+     * @type {string}
+     * @private
+     */
+    this._type = 'WheelZoom';
+  }
+
+  mounted () {
+    const viewport = this.getMap().getViewport();
+    on(viewport, 'wheel', this.handleEvent, this);
+    on(viewport, 'mousewheel', this.handleEvent, this);
+  }
+
+  destroyed () {
+    const viewport = this.getMap().getViewport();
+    off(viewport, 'wheel', this.handleEvent, this);
+    off(viewport, 'mousewheel', this.handleEvent, this);
   }
 
   /**
@@ -13,7 +32,6 @@ class WheelZoom extends Base {
    * @returns {boolean}
    */
   handleEvent (event) {
-    console.log(event)
     const type = event.type;
     const _map = this.getMap();
     if (!_map) return false;

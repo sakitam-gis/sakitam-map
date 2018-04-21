@@ -17,9 +17,27 @@ class DragPan extends Base {
      * @type {Array}
      */
     this.startCoordinates = [];
+
+    /**
+     * type
+     * @type {string}
+     * @private
+     */
+    this._type = 'DragPan';
+  }
+
+  mounted () {
+    const viewport = this.getMap().getViewport();
+    on(viewport, 'mousedown', this.handleEvent, this);
+  }
+
+  destroyed () {
+    const viewport = this.getMap().getViewport();
+    off(viewport, 'mousedown', this.handleEvent, this);
   }
 
   handleEvent (event) {
+    if (!this.getActive()) return;
     let stopEvent = false;
     this.draging = true;
     this.startCoordinates = this.getMap().getCoordinateFromPixel(this.getMap().getEventPixel(event));
