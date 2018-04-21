@@ -13,57 +13,43 @@ class WheelZoom extends Base {
    * @returns {boolean}
    */
   handleEvent (event) {
+    console.log(event)
     const type = event.type;
     const _map = this.getMap();
-    if (!_map) return;
+    if (!_map) return false;
     if (type !== 'wheel' && type !== 'mousewheel') {
       return true;
     }
     preventDefault(event);
-    const origin = _map.getOrigin();
-    const coordinates = _map.getCoordinateFromPixel(_map.getEventPixel(event));
-    console.log(coordinates)
-    const resolutions = _map.getResolutions();
+    let levelValue = (event.wheelDelta ? event.wheelDelta : event.detail) > 0 ? 1 : -1;
+    const lastZoom = _map.getZoom()
+    let nextZoom = lastZoom + levelValue;
+    const size = _map.getSize();
+    const center = _map.getCenter();
     const resolution = _map.getResolution();
-    let newResolution = '';
-    if (event.wheelDelta > 0) {
-      for (let i = 0; i < resolutions.length; i++) {
-        if (resolution > resolutions[i]) {
-          newResolution = resolutions[i];
-          const scale = resolution / newResolution;
-          _map.setResolution(newResolution);
-          _map.setOrigin([
-            origin[0] + (coordinates[0] - origin[0]) / scale,
-            origin[1] + (coordinates[1] - origin[1]) / scale
-          ]);
-          break;
-        }
-      }
-    } else {
-      for (let i = 0; i < resolutions.length; i++) {
-        if (resolution >= resolutions[i]) {
-          if (i === 0) {
-            newResolution = resolutions[0];
-          } else {
-            newResolution = resolutions[i - 1];
-          }
-          const scale = newResolution / resolution;
-          _map.setResolution(newResolution);
-          _map.setOrigin([
-            origin[0] + (coordinates[0] - origin[0]) / (scale - 1),
-            origin[1] + (coordinates[1] - origin[1]) / (scale - 1)
-          ]);
-          break;
-        }
-      }
+    const resolutions = _map.getResolutions();
+    nextZoom = nextZoom >= (resolutions.length - 1) ? (resolutions.length - 1) : (nextZoom <= 0 ? 0 : nextZoom);
+    if (nextZoom === lastZoom) {
+      return false;
     }
-    const newOrigin = _map.getOrigin();
-    _map.setExtent([
-      newOrigin[0],
-      newOrigin[1] - newResolution * _map.getSize()[1],
-      newOrigin[0] + newResolution * _map.getSize()[0],
-      newOrigin[1]
-    ]);
+    const coordinates = _map.getCoordinateFromPixel(_map.getEventPixel(event));
+    let newResolution = _map._getNearestResolution(lastZoom, nextZoom, (nextZoom <= lastZoom));
+    newResolution = newResolution >= _map.maxResolution ? _map.maxResolution : (newResolution <= _map.minResolution ? _map.minResolution : newResolution);
+    const scale = newResolution / resolution;
+    let newCenter = [
+      coordinates[0] + (center[0] - coordinates[0]) * scale,
+      coordinates[1] + (center[1] - coordinates[1]) * scale
+    ];
+    let _offset = [
+      (newCenter[0] - center[0]) / newResolution,
+      (newCenter[1] - center[1]) / newResolution
+    ];
+    _map.animate({
+      center: newCenter,
+      zoom: nextZoom,
+      origin: [size[0] / 2, size[1] / 2],
+      offset: _offset
+    });
   }
 }
 

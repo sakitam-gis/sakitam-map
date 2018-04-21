@@ -174,8 +174,8 @@ class Map extends Observable {
     const viewportPosition = this.viewport_.getBoundingClientRect();
     const eventPosition = event.changedTouches ? event.changedTouches[0] : event;
     return [
-      eventPosition.clientX - viewportPosition.left,
-      eventPosition.clientY - viewportPosition.top
+      eventPosition.clientX - viewportPosition.left - this.viewport_.clientLeft,
+      eventPosition.clientY - viewportPosition.top - this.viewport_.clientTop
     ];
   }
 
@@ -349,7 +349,7 @@ class Map extends Observable {
    */
   setZoom (zoom) {
     const lastZoom = this.getZoom();
-    let res = this._getNearestResolution(lastZoom, zoom, (zoom < lastZoom));
+    let res = this._getNearestResolution(lastZoom, zoom, (zoom <= lastZoom));
     res = res >= this.maxResolution ? this.maxResolution : (res <= this.minResolution ? this.minResolution : res);
     this.setResolution(res);
     this._zoom = zoom;
@@ -451,6 +451,24 @@ class Map extends Observable {
         break;
       }
     }
+  }
+
+  animate (options = {}) {
+    if (!options.origin) {
+      const size = this.getSize();
+      options.origin = [size[0] / 2, size[1] / 2]
+    }
+    if (options.zoom !== undefined) {
+      this._zoom = options.zoom;
+    }
+    if (options.origin && options.center) {
+      this.setCenter([
+        options.center[0],
+        options.center[1]
+      ]);
+    }
+    this.setZoom(this._zoom);
+    return this;
   }
 }
 
