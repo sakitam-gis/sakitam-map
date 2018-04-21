@@ -34,31 +34,14 @@ class TileLayer extends Base {
     if (!this.getMap()) {
       return this;
     }
-    this.rerender();
     this.render();
     return this;
   }
 
   /**
-   * render layer
-   */
-  render () {
-    if (this.getMap()) {
-      const context = this.getMap().getContext();
-      context.save();
-      context.globalAlpha = this.getOpacity();
-      for (let i = 0; i < this.tiles.length; i++) {
-        const tile = this.tiles[i];
-        this._drawTile(tile, context)
-      }
-      context.restore();
-    }
-  }
-
-  /**
    * re render
    */
-  rerender () {
+  render () {
     const map = this.getMap();
     const size = map.getSize();
     const center = map.getCenter();
@@ -94,7 +77,14 @@ class TileLayer extends Base {
     }
     const centerTile = this._getTileIndex(center[0], center[1], zoom);
     this._sortTiles(tiles, centerTile);
-    this._getTiles(tiles);
+    const loadTiles_ = this._getTiles(tiles);
+    const context = map.getContext();
+    context.save();
+    context.globalAlpha = this.getOpacity();
+    for (let i = 0; i < loadTiles_.length; i++) {
+      this._drawTile(loadTiles_[i], context)
+    }
+    context.restore();
   }
 
   /**
@@ -140,12 +130,20 @@ class TileLayer extends Base {
   _getTiles (tiles) {
     for (let i = 0; i < tiles.length; i++) {
       const tile = tiles[i];
-      if (tile['id'] && (this.tiles.filter(_tile => _tile.id === tile['id'])).length > 0) {
-        console.info('exist')
+      const existTiles = this.tiles.filter(_tile => _tile.id === tile['id']);
+      if (tile['id'] && existTiles.length > 0 && existTiles[0].url === existTiles[0].getErrorTile()) {
+        existTiles[0].setOptions({
+          x: tile.x,
+          y: tile.y,
+          z: tile.z,
+          id: tile.id,
+          url: tile.url
+        });
       } else {
-        this.tiles.push(new Tile(tile.url, tile.x, tile.y, tile.z, tile.id, this))
+        this.tiles.push(new Tile(tile.url, tile.x, tile.y, tile.z, tile.id, this));
       }
     }
+    return this.tiles;
   }
 
   /**

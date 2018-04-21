@@ -348,6 +348,10 @@ class Map extends Observable {
    * @param zoom
    */
   setZoom (zoom) {
+    const lastZoom = this.getZoom();
+    let res = this._getNearestResolution(lastZoom, zoom, (zoom < lastZoom));
+    res = res >= this.maxResolution ? this.maxResolution : (res <= this.minResolution ? this.minResolution : res);
+    this.setResolution(res);
     this._zoom = zoom;
     this.render();
   }
@@ -399,6 +403,33 @@ class Map extends Observable {
    */
   getResolution () {
     return this.resolution;
+  }
+
+  /**
+   * get nearest resolution
+   * @param lastZoom
+   * @param nextZoom
+   * @param greater
+   * @returns {*}
+   * @private
+   */
+  _getNearestResolution (lastZoom, nextZoom, greater) {
+    const lastResolution = this.getResolution();
+    const resolutions = this.getResolutions();
+    if (resolutions) {
+      for (let i = 0, len = resolutions.length; i < len; i++) {
+        const currentResolution = resolutions[i];
+        if (Math.abs(currentResolution - lastResolution) < lastResolution / 1e2) {
+          nextZoom = i + 1 >= len ? len - 1 : i + 1;
+          return greater ? resolutions[lastZoom] : resolutions[nextZoom];
+        } else if (currentResolution < lastResolution) {
+          return greater ? resolutions[lastZoom] : currentResolution;
+        } else {
+          lastZoom = i;
+        }
+      }
+    }
+    return greater ? lastResolution * 2 : lastResolution / 2;
   }
 
   /**
