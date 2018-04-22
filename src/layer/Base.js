@@ -1,4 +1,4 @@
-import { clamp } from '../utils'
+import { clamp, isNumber } from '../utils'
 import Observable from '../events/Observable';
 import {get} from '../proj';
 
@@ -11,11 +11,12 @@ class Base extends Observable {
      * @type {null}
      * @private
      */
-    this._map = null;
+    this.map = null;
 
     /**
      * current layer opacity
      */
+    options['opacity'] = isNumber(options['opacity']) ? options['opacity'] : 1;
     this.opacity = clamp(options['opacity'], 0, 1);
 
     /**
@@ -46,6 +47,13 @@ class Base extends Observable {
      * @type {*|number}
      */
     this.zIndex = options['zIndex'] || 0;
+
+    /**
+     * render canvas
+     * @type {null}
+     * @private
+     */
+    this.canvas_ = null;
   }
 
   /**
@@ -119,6 +127,14 @@ class Base extends Observable {
    */
   getMap () {
     return this.map;
+  }
+
+  /**
+   * get canvas context
+   * @returns {HTMLCanvasElement}
+   */
+  getContext () {
+    return this.canvas_.getContext('2d');
   }
 }
 

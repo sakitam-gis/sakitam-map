@@ -20,12 +20,14 @@
   var map = new smap.Map('map', {
     projection: 'EPSG:3857',
     zoom: 5,
-    center: [0, 0]
+    center: [12673975, 4079823]
   });
 
-  var layer = new smap.layer.VectorLayer({
-    url: '../data/countries.geojson'
-  });
+  var points = [
+    [12673975, 4079823, 25]
+  ];
+
+  var layer = new smap.layer.HeatLayer(points);
   map.addLayer(layer);
   var drag = new smap.interactions.DragPan();
   var zoom = new smap.interactions.WheelZoom();

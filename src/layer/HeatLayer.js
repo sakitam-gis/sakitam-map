@@ -1,4 +1,5 @@
-import { createCanvas } from '../utils'
+import Base from './Base';
+import {createCanvas} from '../utils'
 
 const _options = {
   radius: 25,
@@ -8,11 +9,12 @@ const _options = {
   gradient: ['#00f', '#0ff', '#0f0', '#ff0', '#f00']
 };
 
-class HeatLayer {
+class HeatLayer extends Base {
   constructor (points, options = {}) {
+    super(options);
     this.options = Object.assign(_options, options)
     if (points && points.length > 0) {
-      this.setData(points)
+      this.setData(points, true)
     }
 
     /**
@@ -20,7 +22,77 @@ class HeatLayer {
      * @type {number}
      * @private
      */
-    this._maxValue = 18
+    this._maxValue = 18;
+
+    /**
+     * render canvas
+     * @type {null}
+     * @private
+     */
+    this.canvas_ = null;
+  }
+
+  /**
+   * load layer
+   * @returns {HeatLayer}
+   */
+  load () {
+    if (!this.getMap()) {
+      return this;
+    }
+
+    /**
+     * map size
+     * @type {*|string}
+     */
+    const size = this.getMap().getSize();
+    if (!this.canvas_) {
+      this.canvas_ = createCanvas(size[0], size[1]);
+    } else {
+      this.canvas_.width = size[0];
+      this.canvas_.height = size[1];
+    }
+    if (this._points) {
+      this.render();
+    }
+    return this;
+  }
+
+  /**
+   * re render
+   */
+  render () {
+    const map = this.getMap();
+    const size = map.getSize();
+    const context = this.getContext() || map.getContext();
+    context.save();
+    context.globalAlpha = this.getOpacity();
+    if (!this._circle) this.setRadius(this.options.radius);
+    if (!this.gradient_) this.setGradient(this.options.gradient);
+    const canvas = context.canvas;
+    const radius = this.getRadius();
+    const blur = this.getBlur();
+    const _rb = radius + blur
+    for (let i = 0, len = this._points.length, point; i < len; i++) {
+      point = this._points[i];
+      context.globalAlpha = Math.min(Math.max(point[2] / this._maxValue, this.options.minOpacity), 1);
+      context.drawImage(this._circle, point[0] - _rb, point[1] - _rb)
+    }
+    const image = context.getImageData(0, 0, canvas.width, canvas.height);
+    const _imgData = image.data;
+    for (let i = 0, ii = _imgData.length; i < ii; i += 4) {
+      const alpha = _imgData[i + 3] * 4;
+      if (alpha) {
+        _imgData[i] = this.gradient_[alpha];
+        _imgData[i + 1] = this.gradient_[alpha + 1];
+        _imgData[i + 2] = this.gradient_[alpha + 2];
+      }
+    }
+    context.putImageData(image, 0, 0);
+    context.restore();
+    if (this.getContext()) {
+      map.getContext().drawImage(this.canvas_, 0, 0, size[0], size[1])
+    }
   }
 
   /**
@@ -34,11 +106,14 @@ class HeatLayer {
   /**
    * set data
    * @param _points
+   * @param notRender
    * @returns {HeatLayer}
    */
-  setData (_points = []) {
+  setData (_points = [], notRender) {
     this._points = _points;
-    this.handleRender_()
+    if (this.getMap() && !notRender) {
+      this.render()
+    }
     return this;
   }
 
@@ -49,6 +124,9 @@ class HeatLayer {
    */
   add (point) {
     this._points.push(point);
+    if (this.getMap()) {
+      this.render()
+    }
     return this;
   }
 
@@ -141,36 +219,6 @@ class HeatLayer {
    */
   handleGradientChanged_ () {
     this.gradient_ = HeatLayer.createGradient(this.getGradient());
-  }
-
-  /**
-   * handle render
-   * @private
-   */
-  handleRender_ () {
-    if (!this._circle) this.setRadius(this.options.radius);
-    if (!this.gradient_) this.setGradient(this.options.gradient);
-    const context = this.options.context;
-    const canvas = context.canvas;
-    const radius = this.getRadius();
-    const blur = this.getBlur();
-    const _rb = radius + blur
-    for (let i = 0, len = this._points.length, point; i < len; i++) {
-      point = this._points[i];
-      context.globalAlpha = Math.min(Math.max(point[2] / this._maxValue, this.options.minOpacity), 1);
-      context.drawImage(this._circle, point[0] - _rb, point[1] - _rb)
-    }
-    const image = context.getImageData(0, 0, canvas.width, canvas.height);
-    const _imgData = image.data;
-    for (let i = 0, ii = _imgData.length; i < ii; i += 4) {
-      const alpha = _imgData[i + 3] * 4;
-      if (alpha) {
-        _imgData[i] = this.gradient_[alpha];
-        _imgData[i + 1] = this.gradient_[alpha + 1];
-        _imgData[i + 2] = this.gradient_[alpha + 2];
-      }
-    }
-    context.putImageData(image, 0, 0);
   }
 
   /**

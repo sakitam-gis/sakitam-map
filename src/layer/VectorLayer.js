@@ -14,19 +14,6 @@ class VectorLayer extends Base {
     this.url = options['url'] || '';
 
     /**
-     * context
-     * @type {null}
-     */
-    this.context = null;
-
-    /**
-     * render canvas
-     * @type {null}
-     * @private
-     */
-    this.canvas_ = null;
-
-    /**
      * json data
      * @type {*|{}}
      * @private
@@ -94,14 +81,6 @@ class VectorLayer extends Base {
     if (this.getContext()) {
       map.getContext().drawImage(this.canvas_, 0, 0, size[0], size[1])
     }
-  }
-
-  /**
-   * get canvas context
-   * @returns {HTMLCanvasElement}
-   */
-  getContext () {
-    return this.context;
   }
 }
 
