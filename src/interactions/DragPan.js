@@ -13,10 +13,10 @@ class DragPan extends Base {
     this.draging = false;
 
     /**
-     * start coordinates
+     * start pixel
      * @type {Array}
      */
-    this.startCoordinates = [];
+    this.startPixel = [];
 
     /**
      * type
@@ -40,7 +40,7 @@ class DragPan extends Base {
     if (!this.getActive()) return;
     let stopEvent = false;
     this.draging = true;
-    this.startCoordinates = this.getMap().getCoordinateFromPixel(this.getMap().getEventPixel(event));
+    this.startPixel = this.getMap().getEventPixel(event);
     on(window.document, 'mousemove', this.handleMouseMove, this);
     on(window.document, 'mouseup', this.handleMouseUp, this);
     return !stopEvent;
@@ -49,17 +49,18 @@ class DragPan extends Base {
   handleMouseMove (event) {
     if (event.ctrlKey || event.button !== 0) return;
     if (this.draging) {
-      const coordinates = this.getMap().getCoordinateFromPixel(this.getMap().getEventPixel(event));
+      const pixel = this.getMap().getEventPixel(event);
       let _offset = [
-        coordinates[0] - this.startCoordinates[0],
-        coordinates[1] - this.startCoordinates[1]
+        pixel[0] - this.startPixel[0],
+        pixel[1] - this.startPixel[1]
       ];
       const center = this.getMap().getCenter();
-      this.startCoordinates = coordinates;
-      this.getMap().setCenter([
-        center[0] - _offset[0],
-        center[1] - _offset[1]
-      ]);
+      const centerPixel = this.getMap().getPixelFromCoordinate(center);
+      this.startPixel = pixel;
+      this.getMap().setCenter(this.getMap().getCoordinateFromPixel([
+        centerPixel[0] - _offset[0],
+        centerPixel[1] - _offset[1]
+      ]));
     }
   }
 

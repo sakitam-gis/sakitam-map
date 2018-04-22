@@ -191,9 +191,6 @@ class TileLayer extends Base {
           this.origin[0] + (i + 1) * this.tileSize[0] * layerResolution,
           this.origin[1] - j * this.tileSize[1] * layerResolution
         ];
-        // if (!overlaps(tileExtent, intersect(this.getExtent(), map.getExtent()), -Math.max(1e-5, mapResolution / 10))) {
-        //   continue;
-        // }
         const url = this._getTileUrl(i, j, zoom);
         _tiles.push({
           z: zoom,

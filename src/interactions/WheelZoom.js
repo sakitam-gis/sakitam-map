@@ -50,23 +50,19 @@ class WheelZoom extends Base {
     if (nextZoom === lastZoom) {
       return false;
     }
-    const coordinates = _map.getCoordinateFromPixel(_map.getEventPixel(event));
-    let newResolution = _map._getNearestResolution(lastZoom, nextZoom, (nextZoom <= lastZoom));
+    const pixel = _map.getEventPixel(event);
+    const coordinates = _map.getCoordinateFromPixel(pixel);
+    let newResolution = _map._getNearestResolution(lastZoom, nextZoom, (nextZoom < lastZoom));
     newResolution = newResolution >= _map.maxResolution ? _map.maxResolution : (newResolution <= _map.minResolution ? _map.minResolution : newResolution);
     const scale = newResolution / resolution;
-    let newCenter = [
-      coordinates[0] + (center[0] - coordinates[0]) * scale,
-      coordinates[1] + (center[1] - coordinates[1]) * scale
-    ];
-    let _offset = [
-      (newCenter[0] - center[0]) / newResolution,
-      (newCenter[1] - center[1]) / newResolution
-    ];
+    console.log(nextZoom, newResolution)
     _map.animate({
-      center: newCenter,
+      center: [
+        coordinates[0] + (center[0] - coordinates[0]) * scale,
+        coordinates[1] + (center[1] - coordinates[1]) * scale
+      ],
       zoom: nextZoom,
-      origin: [size[0] / 2, size[1] / 2],
-      offset: _offset
+      origin: [size[0] / 2, size[1] / 2]
     });
   }
 }

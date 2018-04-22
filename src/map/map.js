@@ -177,9 +177,11 @@ class Map extends Observable {
   getEventPixel (event) {
     const viewportPosition = this.viewport_.getBoundingClientRect();
     const eventPosition = event.changedTouches ? event.changedTouches[0] : event;
+    let pixelX = eventPosition.pageX ? eventPosition.pageX - document.body.scrollLeft - document.documentElement.scrollLeft : eventPosition.clientX;
+    let pixelY = eventPosition.pageY ? eventPosition.pageY - document.body.scrollTop - document.documentElement.scrollTop : eventPosition.clientY;
     return [
-      eventPosition.clientX - viewportPosition.left - this.viewport_.clientLeft,
-      eventPosition.clientY - viewportPosition.top - this.viewport_.clientTop
+      pixelX - viewportPosition.left + this.viewport_.clientLeft,
+      pixelY - viewportPosition.top + this.viewport_.clientTop
     ];
   }
 
@@ -189,11 +191,14 @@ class Map extends Observable {
    * @returns {*[]}
    */
   getCoordinateFromPixel (pixel) {
-    const _origin = this.getOrigin();
+    const size = this.getSize();
+    const center = this.getCenter();
     const _resolution = this.getResolution();
-    let x = pixel[0] * _resolution + _origin[0];
-    let y = _origin[1] - pixel[1] * _resolution;
-    return [x, y];
+    const halfSize = [size[0] / 2, size[1] / 2];
+    return [
+      (pixel[0] - halfSize[0]) * _resolution + center[0],
+      (halfSize[1] - pixel[1]) * _resolution + center[1]
+    ];
   }
 
   /**
@@ -203,13 +208,13 @@ class Map extends Observable {
    */
   getPixelFromCoordinate (coordinates) {
     const size = this.getSize();
+    const halfSize = [size[0] / 2, size[1] / 2];
     const center = this.getCenter();
     const resolution = this.getResolution();
-    let [x, y] = [
-      size[0] / 2 + (coordinates[0] - center[0]) / resolution,
-      size[1] / 2 - (coordinates[1] - center[1]) / resolution
+    return [
+      halfSize[0] + (coordinates[0] - center[0]) / resolution,
+      halfSize[1] - (coordinates[1] - center[1]) / resolution
     ];
-    return [x, y];
   }
 
   /**
@@ -352,7 +357,7 @@ class Map extends Observable {
    */
   setZoom (zoom) {
     const lastZoom = this.getZoom();
-    let res = this._getNearestResolution(lastZoom, zoom, (zoom <= lastZoom));
+    let res = this._getNearestResolution(lastZoom, zoom, (zoom < lastZoom));
     res = res >= this.maxResolution ? this.maxResolution : (res <= this.minResolution ? this.minResolution : res);
     this.setResolution(res);
     this._zoom = zoom;
@@ -440,16 +445,10 @@ class Map extends Observable {
       const size = this.getSize();
       options.origin = [size[0] / 2, size[1] / 2]
     }
-    if (options.zoom !== undefined) {
-      this._zoom = options.zoom;
-    }
     if (options.origin && options.center) {
-      this.setCenter([
-        options.center[0],
-        options.center[1]
-      ]);
+      this._center = options.center;
     }
-    this.setZoom(this._zoom);
+    this.setZoom(options.zoom);
     return this;
   }
 }

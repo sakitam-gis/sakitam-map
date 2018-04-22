@@ -1,5 +1,5 @@
 import Base from './Base';
-import { on, off } from '../utils';
+import { on, off, preventDefault } from '../utils';
 
 class DoubleClickZoom extends Base {
   constructor (options = {}) {
@@ -34,7 +34,8 @@ class DoubleClickZoom extends Base {
     if (!this.getActive()) return false;
     const _map = this.getMap();
     if (!_map) return false;
-    const lastZoom = _map.getZoom();
+    preventDefault(event);
+    const lastZoom = _map.getZoom()
     let nextZoom = lastZoom + 1;
     const size = _map.getSize();
     const center = _map.getCenter();
@@ -44,16 +45,16 @@ class DoubleClickZoom extends Base {
     if (nextZoom === lastZoom) {
       return false;
     }
-    const coordinates = _map.getCoordinateFromPixel(_map.getEventPixel(event));
-    let newResolution = _map._getNearestResolution(lastZoom, nextZoom, (nextZoom <= lastZoom));
+    const pixel = _map.getEventPixel(event);
+    const coordinates = _map.getCoordinateFromPixel(pixel);
+    let newResolution = _map._getNearestResolution(lastZoom, nextZoom, (nextZoom < lastZoom));
     newResolution = newResolution >= _map.maxResolution ? _map.maxResolution : (newResolution <= _map.minResolution ? _map.minResolution : newResolution);
     const scale = newResolution / resolution;
-    let newCenter = [
-      coordinates[0] + (center[0] - coordinates[0]) * scale,
-      coordinates[1] + (center[1] - coordinates[1]) * scale
-    ];
     _map.animate({
-      center: newCenter,
+      center: [
+        coordinates[0] + (center[0] - coordinates[0]) * scale,
+        coordinates[1] + (center[1] - coordinates[1]) * scale
+      ],
       zoom: nextZoom,
       origin: [size[0] / 2, size[1] / 2]
     });

@@ -42,6 +42,10 @@
   };
 
   var drag = new smap.interactions.DragPan();
+  var zoom = new smap.interactions.WheelZoom();
+  var dbclick = new smap.interactions.DoubleClickZoom();
+  map.addInteraction(dbclick);
+  map.addInteraction(zoom);
   map.addInteraction(drag);
 </script>
 </body>
