@@ -6,7 +6,7 @@ const _options = {
   shadow: 250,
   minOpacity: 0.05,
   gradient: ['#00f', '#0ff', '#0f0', '#ff0', '#f00']
-}
+};
 
 class HeatLayer {
   constructor (points, options = {}) {
@@ -143,6 +143,10 @@ class HeatLayer {
     this.gradient_ = HeatLayer.createGradient(this.getGradient());
   }
 
+  /**
+   * handle render
+   * @private
+   */
   handleRender_ () {
     if (!this._circle) this.setRadius(this.options.radius);
     if (!this.gradient_) this.setGradient(this.options.gradient);

@@ -55,7 +55,6 @@ class WheelZoom extends Base {
     let newResolution = _map._getNearestResolution(lastZoom, nextZoom, (nextZoom < lastZoom));
     newResolution = newResolution >= _map.maxResolution ? _map.maxResolution : (newResolution <= _map.minResolution ? _map.minResolution : newResolution);
     const scale = newResolution / resolution;
-    console.log(nextZoom, newResolution)
     _map.animate({
       center: [
         coordinates[0] + (center[0] - coordinates[0]) * scale,

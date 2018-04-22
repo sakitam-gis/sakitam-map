@@ -46,7 +46,7 @@ class TileLayer extends Base {
     const size = map.getSize();
     const center = map.getCenter();
     const resolutions = map.getResolutions();
-    const zoom = this._getNearestZoom(false);
+    const zoom = map._getNearestZoom(false);
     const layerResolution = resolutions[zoom];
     let tiles = this._getTilesInternal();
     this.setExtent([
@@ -101,7 +101,7 @@ class TileLayer extends Base {
     const mapExtent = map.getExtent();
     const resolution = map.getResolution();
     const resolutions = map.getResolutions();
-    const zoom = this._getNearestZoom(false);
+    const zoom = map._getNearestZoom(false);
     const layerResolution = resolutions[zoom];
     let x = this.origin[0] + parseInt(tile['x']) * this.tileSize[0] * layerResolution;
     let y = this.origin[1] - parseInt(tile['y']) * this.tileSize[1] * layerResolution;
@@ -171,7 +171,7 @@ class TileLayer extends Base {
     const center = map.getCenter();
     const mapResolution = map.getResolution();
     const resolutions = map.getResolutions();
-    const zoom = this._getNearestZoom(false);
+    const zoom = map._getNearestZoom(false);
     const layerResolution = resolutions[zoom];
     const scale = layerResolution / mapResolution;
     const scaledTileSize = [this.tileSize[0] * scale, this.tileSize[1] * scale];
@@ -263,30 +263,6 @@ class TileLayer extends Base {
     } else {
       return this.url.replace('{z}', zoom).replace('{x}', idxX).replace('{y}', idxY);
     }
-  }
-
-  /**
-   * get current nearest zoom
-   * @param greater
-   * @returns {number}
-   * @private
-   */
-  _getNearestZoom (greater) {
-    const map = this.getMap();
-    const resolution = map.getResolution();
-    const resolutions = map.getResolutions();
-    let [newResolution, lastZoom] = [undefined, 0]
-    for (let i = 0, length = resolutions.length; i < length; i++) {
-      newResolution = resolutions[i];
-      if (resolution > newResolution) {
-        return greater ? i : lastZoom;
-      } else if (resolution <= newResolution && resolution > newResolution) {
-        return i;
-      } else {
-        lastZoom = i;
-      }
-    }
-    return 0;
   }
 }
 
