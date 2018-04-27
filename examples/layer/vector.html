@@ -23,10 +23,14 @@
     center: [0, 0]
   });
 
-  var layer = new smap.layer.VectorLayer({
-    url: '../data/countries.geojson'
+  var layer = new smap.layer.TileLayer({
+    url: 'http://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
+  });
+  var vector = new smap.layer.VectorLayer({
+    url: '../data/polygon.json'
   });
   map.addLayer(layer);
+  map.addLayer(vector);
   var drag = new smap.interactions.DragPan();
   var zoom = new smap.interactions.WheelZoom();
   var dbclick = new smap.interactions.DoubleClickZoom();
