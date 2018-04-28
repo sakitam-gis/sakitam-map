@@ -44,7 +44,7 @@
 首先你需要 Node.js 7+ 和 NPM 5+
 
 ```shell
-git clone https://github.com/sakitam-fdd/sakitam-map.git
+git clone https://github.com/sakitam-gis/sakitam-map.git
 npm install // or yarn
 npm run dev
 npm run build

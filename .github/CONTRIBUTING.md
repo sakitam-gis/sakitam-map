@@ -46,7 +46,7 @@
 first you need Node.js 7+ and NPM 5+
 
 ```shell
-git clone https://github.com/sakitam-fdd/sakitam-map.git
+git clone https://github.com/sakitam-gis/sakitam-map.git
 npm install // or yarn
 npm run dev
 npm run build
