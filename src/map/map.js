@@ -312,6 +312,8 @@ class Map extends Observable {
     const _size = this.getSize();
     const _layers = this.getLayers();
     this.context.clearRect(0, 0, _size[0], _size[1]);
+    this.context.fillStyle = 'rgba(64, 74, 89, 0.9)';
+    this.context.fillRect(0, 0, _size[0], _size[1]);
     for (let i = 0; i < _layers.length; i++) {
       const _layer = _layers[i];
       if (!_layer) {

@@ -49,6 +49,12 @@ class Base extends Observable {
     this.zIndex = options['zIndex'] || 0;
 
     /**
+     * render type
+     * @type {*|string}
+     */
+    this.renderType = options['renderType'] || 'canvas';
+
+    /**
      * render canvas
      * @type {null}
      * @private
@@ -84,12 +90,21 @@ class Base extends Observable {
   };
 
   /**
+   * get render type
+   * @returns {*|string}
+   */
+  getRenderType () {
+    return this.renderType;
+  }
+
+  /**
    * Set the extent at which the layer is visible.  If `undefined`, the layer
    * will be visible at all extents.
    * @param extent
    */
   setExtent (extent) {
     this.extent = extent;
+    // this.load();
   };
 
   /**
@@ -100,6 +115,7 @@ class Base extends Observable {
    */
   setOpacity (opacity) {
     this.opacity = opacity;
+    // this.load();
   };
 
   /**
@@ -111,7 +127,21 @@ class Base extends Observable {
    */
   setZIndex (zindex) {
     this.zIndex = zindex;
+    // this.load();
   }
+
+  /**
+   * set render type
+   * @param type
+   */
+  setRenderType (type) {
+    this.renderType = type || this.renderType;
+  }
+
+  /**
+   * load layer
+   */
+  load () {}
 
   /**
    * set map

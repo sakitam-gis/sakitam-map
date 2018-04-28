@@ -24,12 +24,12 @@
   });
 
   var layer = new smap.layer.TileLayer({
-    url: 'http://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
+    url: 'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png'
   });
   var vector = new smap.layer.VectorLayer({
-    url: '../data/polygon.json'
+    url: '../data/countries.geojson'
   });
-  map.addLayer(layer);
+  // map.addLayer(layer);
   map.addLayer(vector);
   var drag = new smap.interactions.DragPan();
   var zoom = new smap.interactions.WheelZoom();

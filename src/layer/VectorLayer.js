@@ -1,6 +1,27 @@
 import Base from './Base';
 import { createCanvas, isEmpty } from '../utils';
 import ajax from '../utils/ajax';
+import { fromLonLat } from '../proj';
+
+const STYLE_BASE = {
+  globalAlpha: 1,
+  globalCompositeOperation: 'source-over',
+  imageSmoothingEnabled: true,
+  strokeStyle: '#404a59',
+  fillStyle: '#323c48',
+  shadowOffsetX: 0,
+  shadowOffsetY: 0,
+  shadowBlur: 0,
+  shadowColor: 'rgba(0, 0, 0, 0)',
+  lineWidth: 1,
+  lineCap: 'butt',
+  lineJoin: 'miter',
+  miterLimit: 10,
+  lineDashOffset: 0,
+  font: '10px sans-serif',
+  textAlign: 'start',
+  textBaseline: 'alphabetic'
+};
 
 class VectorLayer extends Base {
   constructor (options = {}) {
@@ -18,6 +39,11 @@ class VectorLayer extends Base {
      * @private
      */
     this._data = options['data'] || {};
+
+    /**
+     * set style
+     */
+    this.setStyle(options['style'] || {}, false);
   }
 
   /**
@@ -54,34 +80,40 @@ class VectorLayer extends Base {
   }
 
   /**
+   * set style
+   * @param style
+   * @param render
+   */
+  setStyle (style = {}, render = true) {
+    this._style = Object.assign({}, STYLE_BASE, style);
+    this._style.globalAlpha = this.getOpacity();
+    if (render) this.render();
+  }
+
+  /**
    * re render
    */
-  render (options) {
+  render () {
+    const data = this._data;
     const map = this.getMap();
     const size = map.getSize();
     const context = this.getContext() || map.getContext();
     context.save();
-    context.globalAlpha = this.getOpacity();
-    context.fillStyle = '#08304b';
-    context.save();
-    const data = this._data;
-    for (let key in options) {
-      context[key] = options[key];
+    for (let key in this._style) {
+      context[key] = this._style[key];
     }
-    if (options.bigData) {
+    if (this.getRenderType() === 'webgl') {
       context.save();
       context.beginPath();
       let item;
       for (let i = 0, len = data.length; i < len; i++) {
         item = data[i];
-        this._drawInternal(context, item, options);
+        this._drawInternal(context, item);
       }
-      let type = options.bigData;
+      let type = item.geometry.type;
       if (type === 'Point' || type === 'Polygon' || type === 'MultiPolygon') {
         context.fill();
-        if ((item.strokeStyle || options.strokeStyle) && options.lineWidth) {
-          context.stroke();
-        }
+        context.stroke();
       } else if (type === 'LineString') {
         context.stroke();
       }
@@ -90,23 +122,21 @@ class VectorLayer extends Base {
       for (let i = 0; i < data.length; i++) {
         const item = data[i];
         context.save();
-        if (item.fillStyle || item._fillStyle) {
-          context.fillStyle = item.fillStyle || item._fillStyle;
+        if (item.fillStyle) {
+          context.fillStyle = item.fillStyle;
         }
-        if (item.strokeStyle || item._strokeStyle) {
-          context.strokeStyle = item.strokeStyle || item._strokeStyle;
+        if (item.strokeStyle) {
+          context.strokeStyle = item.strokeStyle;
         }
         let type = item.geometry.type;
         context.beginPath();
-        this._drawInternal(context, item, options);
+        this._drawInternal(context, item);
         if (type === 'Point' || type === 'Polygon' || type === 'MultiPolygon') {
           context.fill();
-          if ((item.strokeStyle || options.strokeStyle) && options.lineWidth) {
-            context.stroke();
-          }
+          context.stroke();
         } else if (type === 'LineString') {
-          if (item.lineWidth || item._lineWidth) {
-            context.lineWidth = item.lineWidth || item._lineWidth;
+          if (item.lineWidth) {
+            context.lineWidth = item.lineWidth;
           }
           context.stroke();
         }
@@ -123,43 +153,37 @@ class VectorLayer extends Base {
    * draw vector shape
    * @param context
    * @param data
-   * @param options
    * @private
    */
-  _drawInternal (context, data, options) {
+  _drawInternal (context, data) {
+    const _map = this.getMap();
     let type = data.geometry.type;
-    let coordinates = data.geometry._coordinates || data.geometry.coordinates;
-    let symbol = options.symbol || 'circle';
+    let coordinates = data.geometry.coordinates;
+    let pixel = [];
     switch (type) {
       case 'Point':
-        let size = data._size || data.size || options._size || options.size || 5;
-        if (symbol === 'circle') {
-          if (options.bigData === 'Point') {
-            context.moveTo(coordinates[0], coordinates[1]);
-          }
-          context.arc(coordinates[0], coordinates[1], size, 0, Math.PI * 2);
-        } else if (symbol === 'rect') {
-          context.rect(coordinates[0] - size / 2, coordinates[1] - size / 2, size, size);
-        }
+        let size = data._size || data.size || 5;
+        pixel = _map.getPixelFromCoordinate(fromLonLat(coordinates));
+        context.moveTo(pixel[0], pixel[1]);
+        context.arc(pixel[0], pixel[1], size, 0, Math.PI * 2);
         break;
       case 'LineString':
         for (let j = 0; j < coordinates.length; j++) {
-          let x = coordinates[j][0];
-          let y = coordinates[j][1];
+          pixel = _map.getPixelFromCoordinate(fromLonLat(coordinates[j]));
           if (j === 0) {
-            context.moveTo(x, y);
+            context.moveTo(pixel[0], pixel[1]);
           } else {
-            context.lineTo(x, y);
+            context.lineTo(pixel[0], pixel[1]);
           }
         }
         break;
       case 'Polygon':
-        this._drawPolygon(context, coordinates);
+        this._drawPolygon(context, coordinates, _map);
         break;
       case 'MultiPolygon':
         for (let i = 0; i < coordinates.length; i++) {
           let polygon = coordinates[i];
-          this._drawPolygon(context, polygon);
+          this._drawPolygon(context, polygon, _map);
         }
         context.closePath();
         break;
@@ -173,16 +197,20 @@ class VectorLayer extends Base {
    * draw polygon
    * @param context
    * @param coordinates
+   * @param map
    * @private
    */
-  _drawPolygon (context, coordinates) {
+  _drawPolygon (context, coordinates, map) {
+    let [pixel, pixel_] = [];
     for (let i = 0; i < coordinates.length; i++) {
       let coordinate = coordinates[i];
-      context.moveTo(coordinate[0][0], coordinate[0][1]);
+      pixel = map.getPixelFromCoordinate(fromLonLat(coordinate[0]));
+      context.moveTo(pixel[0], pixel[1]);
       for (let j = 1; j < coordinate.length; j++) {
-        context.lineTo(coordinate[j][0], coordinate[j][1]);
+        pixel_ = map.getPixelFromCoordinate(fromLonLat(coordinate[j]));
+        context.lineTo(pixel_[0], pixel_[1]);
       }
-      context.lineTo(coordinate[0][0], coordinate[0][1]);
+      context.lineTo(pixel[0], pixel[1]);
     }
   }
 }
