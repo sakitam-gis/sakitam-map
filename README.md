@@ -3,9 +3,9 @@
 > a lite javascript map lib
 
 [![Build Status](https://travis-ci.org/sakitam-gis/sakitam-map.svg?branch=master)](https://www.travis-ci.org/sakitam-gis/sakitam-map)
-[![NPM downloads](https://img.shields.io/npm/dm/sakitam-gis/sakitam-map.svg)](https://npmjs.org/package/sakitam-gis/sakitam-map)
-![JS gzip size](http://img.badgesize.io/https://unpkg.com/sakitam-gis/sakitam-map/dist/sakitam-map.js?compression=gzip&label=gzip%20size:%20JS)
-[![Npm package](https://img.shields.io/npm/v/sakitam-gis/sakitam-map.svg)](https://www.npmjs.org/package/sakitam-gis/sakitam-map)
+[![NPM downloads](https://img.shields.io/npm/dm/@sakitam-gis/sakitam-map.svg)](https://npmjs.org/package/@sakitam-gis/sakitam-map)
+![JS gzip size](http://img.badgesize.io/https://unpkg.com/@sakitam-gis/sakitam-map/dist/sakitam-map.js?compression=gzip&label=gzip%20size:%20JS)
+[![Npm package](https://img.shields.io/npm/v/@sakitam-gis/sakitam-map.svg)](https://www.npmjs.org/package/@sakitam-gis/sakitam-map)
 [![GitHub stars](https://img.shields.io/github/stars/sakitam-gis/sakitam-map.svg)](https://github.com/sakitam-gis/sakitam-map/stargazers)
 
 ## 下载
@@ -29,22 +29,22 @@ import smap from '@sakitam-gis/sakitam-map'
 
 #### cdn
 
-目前可通过 [unpkg.com](https://unpkg.com/sakitam-gis/sakitam-map/dist/sakitam-map.js) / [jsdelivr](https://cdn.jsdelivr.net/npm/sakitam-gis/sakitam-map/dist/sakitam-map.js) 获取最新版本的资源。
+目前可通过 [unpkg.com](https://unpkg.com/@sakitam-gis/sakitam-map/dist/sakitam-map.js) / [jsdelivr](https://cdn.jsdelivr.net/npm/@sakitam-gis/sakitam-map/dist/sakitam-map.js) 获取最新版本的资源。
 
 ```bash
 // jsdelivr (jsdelivr由于缓存原因最好锁定版本号，否则可能会出现意料之外的问题)
-https://cdn.jsdelivr.net/npm/sakitam-gis/sakitam-map/dist/sakitam-map.js
-https://cdn.jsdelivr.net/npm/sakitam-gis/sakitam-map/dist/sakitam-map.min.js
+https://cdn.jsdelivr.net/npm/@sakitam-gis/sakitam-map/dist/sakitam-map.js
+https://cdn.jsdelivr.net/npm/@sakitam-gis/sakitam-map/dist/sakitam-map.min.js
 // npm
-https://unpkg.com/sakitam-gis/sakitam-map/dist/sakitam-map.js
-https://unpkg.com/sakitam-gis/sakitam-map/dist/sakitam-map.min.js
+https://unpkg.com/@sakitam-gis/sakitam-map/dist/sakitam-map.js
+https://unpkg.com/@sakitam-gis/sakitam-map/dist/sakitam-map.min.js
 ```
 
 ### use
 
 ```html
 <div id="map"></div>
-<script src="https://unpkg.com/sakitam-gis/sakitam-map/dist/sakitam-map.js"></script>
+<script src="https://unpkg.com/@sakitam-gis/sakitam-map/dist/sakitam-map.js"></script>
 <script type="text/javascript">
   var map = new smap.Map('map', {
     projection: 'EPSG:3857',
