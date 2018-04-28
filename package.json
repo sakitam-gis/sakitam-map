@@ -9,7 +9,7 @@
   "author": "FDD <smileFDD@gmail.com>",
   "homepage": "https://sakitam-gis.github.io/sakitam-map",
   "namespace": "smap",
-  "private": true,
+  "private": false,
   "license": "BSD-3-Clause",
   "keywords": [
     "webgis",
@@ -28,7 +28,8 @@
   },
   "scripts": {
     "dev": "rollup -wm -c build/rollup-dev-config.js",
-    "build": "node build/rollup-prod-config.js"
+    "build": "node build/rollup-prod-config.js",
+    "publish": "npm publish --access=public"
   },
   "dependencies": {},
   "devDependencies": {
