@@ -2,7 +2,7 @@ import Base from './Base';
 import {createCanvas} from '../utils'
 
 const _options = {
-  radius: 25,
+  radius: 15,
   blur: 15,
   shadow: 250,
   minOpacity: 0.05,
@@ -72,9 +72,9 @@ class HeatLayer extends Base {
     const canvas = context.canvas;
     const radius = this.getRadius();
     const blur = this.getBlur();
-    const _rb = radius + blur
+    const _rb = radius + blur;
     for (let i = 0, len = this._points.length, point; i < len; i++) {
-      point = this._points[i];
+      point = map.getPixelFromCoordinate(this._points[i]);
       context.globalAlpha = Math.min(Math.max(point[2] / this._maxValue, this.options.minOpacity), 1);
       context.drawImage(this._circle, point[0] - _rb, point[1] - _rb)
     }
@@ -144,8 +144,8 @@ class HeatLayer extends Base {
    * @param blur
    */
   setBlur (blur) {
-    this.options.blur = blur
-    this.handleRadiusChanged_()
+    this.options.blur = blur;
+    this.handleRadiusChanged_();
     this.handleGradientChanged_()
   }
 
@@ -162,9 +162,9 @@ class HeatLayer extends Base {
    * @param colors
    */
   setGradient (colors) {
-    this.options.gradient = colors
-    this.handleRadiusChanged_()
-    this.handleGradientChanged_()
+    this.options.gradient = colors;
+    this.handleRadiusChanged_();
+    this.handleGradientChanged_();
   }
 
   /**
@@ -172,7 +172,7 @@ class HeatLayer extends Base {
    * @returns {string[]|*}
    */
   getGradient () {
-    return this.options.gradient
+    return this.options.gradient;
   }
 
   /**
@@ -180,9 +180,9 @@ class HeatLayer extends Base {
    * @param radius
    */
   setRadius (radius) {
-    this.options.radius = radius
-    this.handleRadiusChanged_()
-    this.handleGradientChanged_()
+    this.options.radius = radius;
+    this.handleRadiusChanged_();
+    this.handleGradientChanged_();
   }
 
   /**
@@ -190,7 +190,7 @@ class HeatLayer extends Base {
    * @returns {number|*}
    */
   getRadius () {
-    return this.options.radius
+    return this.options.radius;
   }
 
   /**
@@ -202,7 +202,7 @@ class HeatLayer extends Base {
     const blur = this.getBlur();
     const halfSize = radius + blur + 1;
     const size = 2 * halfSize;
-    const canvas = this._circle = createCanvas(size, size)
+    const canvas = this._circle = createCanvas(size, size);
     const context = canvas.getContext('2d');
     context.shadowOffsetX = context.shadowOffsetY = size;
     context.shadowBlur = blur;

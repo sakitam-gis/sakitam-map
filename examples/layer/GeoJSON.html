@@ -19,35 +19,21 @@
 <script type="text/javascript">
   var map = new smap.Map('map', {
     projection: 'EPSG:3857',
-    zoom: 13,
-    center: [13371739.967329768, 3533943.1851871475]
+    zoom: 5,
+    center: [0, 0]
   });
-
+  var vector = new smap.layer.VectorLayer({
+    url: '../data/GeoJSON.json'
+  });
+  map.addLayer(vector);
   var drag = new smap.interactions.DragPan();
   var zoom = new smap.interactions.WheelZoom();
   var dbclick = new smap.interactions.DoubleClickZoom();
+  var pointer = new smap.interactions.PointerEvents();
   map.addInteraction(dbclick);
   map.addInteraction(zoom);
   map.addInteraction(drag);
-  smap.ajax.getJSON('../data/points.json')
-    .then(function (res) {
-      if (res.data) {
-        var data = [];
-        for (var i = 0; i < res.data.length; i++) {
-          for (var j = 0; j < res.data[i].length; j++) {
-            var _item = res.data[i][j];
-            var _coordinates = smap.proj.fromLonLat(_item['coord']);
-            data.push([
-              _coordinates[0],
-              _coordinates[1],
-              _item['elevation']
-            ])
-          }
-        }
-        var layer_ = new smap.layer.HeatLayer(data);
-        map.addLayer(layer_);
-      }
-    });
+  map.addInteraction(pointer);
 </script>
 </body>
 </html>
