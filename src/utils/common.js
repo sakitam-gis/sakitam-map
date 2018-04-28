@@ -288,6 +288,27 @@ const bind = function (fn, context) {
   };
 };
 
+/**
+ * get pixel ratio
+ * @returns {number}
+ */
+const getDevicePixelRatio = function () {
+  return  window.devicePixelRatio || 1;
+};
+
+/**
+ * scale canvas
+ * @param context
+ */
+const scaleCanvas = function (context) {
+  const devicePixelRatio = getDevicePixelRatio();
+  context.canvas.width = context.canvas.width * devicePixelRatio;
+  context.canvas.height = context.canvas.height * devicePixelRatio;
+  context.canvas.style.width = context.canvas.width / devicePixelRatio + 'px';
+  context.canvas.style.height = context.canvas.height / devicePixelRatio + 'px';
+  context.scale(devicePixelRatio, devicePixelRatio);
+};
+
 export {
   bind,
   isDate,
@@ -309,5 +330,7 @@ export {
   checkBrowser,
   encode,
   isArrayBuffer,
-  isURLSearchParams
+  isURLSearchParams,
+  scaleCanvas,
+  getDevicePixelRatio
 }

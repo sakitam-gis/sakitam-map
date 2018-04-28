@@ -20,23 +20,20 @@
   var map = new smap.Map('map', {
     projection: 'EPSG:3857',
     zoom: 5,
-    center: [0, 0]
-  });
-
-  var layer = new smap.layer.TileLayer({
-    url: 'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png'
+    center: [12673975, 4079823]
   });
   var vector = new smap.layer.VectorLayer({
     url: '../data/countries.geojson'
   });
-  // map.addLayer(layer);
   map.addLayer(vector);
   var drag = new smap.interactions.DragPan();
   var zoom = new smap.interactions.WheelZoom();
   var dbclick = new smap.interactions.DoubleClickZoom();
+  var pointer = new smap.interactions.PointerEvents();
   map.addInteraction(dbclick);
   map.addInteraction(zoom);
   map.addInteraction(drag);
+  map.addInteraction(pointer);
 </script>
 </body>
 </html>
