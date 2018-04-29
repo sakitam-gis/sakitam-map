@@ -65,6 +65,7 @@ class HeatLayer extends Base {
     const map = this.getMap();
     const size = map.getSize();
     const context = this.getContext() || map.getContext();
+    context.clearRect(0, 0, size[0], size[1]);
     context.save();
     context.globalAlpha = this.getOpacity();
     if (!this._circle) this.setRadius(this.options.radius);
@@ -142,11 +143,14 @@ class HeatLayer extends Base {
   /**
    * set blur
    * @param blur
+   * @returns {HeatLayer}
    */
   setBlur (blur) {
     this.options.blur = blur;
+    if (!this.getMap()) return this;
     this.handleRadiusChanged_();
-    this.handleGradientChanged_()
+    this.handleGradientChanged_();
+    return this.load();
   }
 
   /**
@@ -160,11 +164,14 @@ class HeatLayer extends Base {
   /**
    * set gradient
    * @param colors
+   * @returns {HeatLayer}
    */
   setGradient (colors) {
     this.options.gradient = colors;
+    if (!this.getMap()) return this;
     this.handleRadiusChanged_();
     this.handleGradientChanged_();
+    return this.load();
   }
 
   /**
@@ -178,11 +185,14 @@ class HeatLayer extends Base {
   /**
    * set radius
    * @param radius
+   * @returns {HeatLayer}
    */
   setRadius (radius) {
     this.options.radius = radius;
+    if (!this.getMap()) return this;
     this.handleRadiusChanged_();
     this.handleGradientChanged_();
+    return this.load();
   }
 
   /**
@@ -191,6 +201,27 @@ class HeatLayer extends Base {
    */
   getRadius () {
     return this.options.radius;
+  }
+
+  /**
+   * set shadow
+   * @param shadow
+   * @returns {HeatLayer}
+   */
+  setShadow (shadow) {
+    this.options.shadow = shadow;
+    if (!this.getMap()) return this;
+    this.handleRadiusChanged_();
+    this.handleGradientChanged_();
+    return this.load();
+  }
+
+  /**
+   * get shoadow
+   * @returns {number|*|string}
+   */
+  getShadow () {
+    return this.options.shadow;
   }
 
   /**

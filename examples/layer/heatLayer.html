@@ -16,6 +16,7 @@
 <body>
 <div id="map"></div>
 <script src="../../dist/sakitam-map.js"></script>
+<script src="../../node_modules/dat.gui/build/dat.gui.js"></script>
 <script type="text/javascript">
   var map = new smap.Map('map', {
     projection: 'EPSG:3857',
@@ -44,8 +45,23 @@
             ])
           }
         }
-        var layer_ = new smap.layer.HeatLayer(data);
+        var options = {
+          radius: 15,
+          blur: 15,
+          shadow: 500,
+        };
+        var layer_ = new smap.layer.HeatLayer(data, options);
         map.addLayer(layer_);
+        var gui = new dat.GUI({
+          nameMap: {
+            radius: 'radius',
+            blur: 'blur',
+            shadow: 'shadow'
+          }
+        });
+        gui.add(options, 'radius', 0, 50).onFinishChange(layer_.setRadius.bind(layer_));
+        gui.add(options, 'blur', 1, 50).onFinishChange(layer_.setBlur.bind(layer_));
+        gui.add(options, 'shadow', 0, 1000).onFinishChange(layer_.setShadow.bind(layer_));
       }
     });
 </script>
