@@ -6,7 +6,7 @@
 [![NPM downloads](https://img.shields.io/npm/dm/@sakitam-gis/sakitam-map.svg)](https://npmjs.org/package/@sakitam-gis/sakitam-map)
 ![JS gzip size](http://img.badgesize.io/https://unpkg.com/@sakitam-gis/sakitam-map/dist/sakitam-map.js?compression=gzip&label=gzip%20size:%20JS)
 [![Npm package](https://img.shields.io/npm/v/@sakitam-gis/sakitam-map.svg)](https://www.npmjs.org/package/@sakitam-gis/sakitam-map)
-[![GitHub stars](https://img.shields.io/github/stars/sakitam-gis/sakitam-map.svg)](https://github.com/sakitam-gis/sakitam-map/stargazers)
+[![GitHub stars](https://img.shields.io/github/stars/sakitam-gis/sakitam-map.svg)](https://github.com/sakitam-gis/sakitam-map/stargazers) [![Greenkeeper badge](https://badges.greenkeeper.io/sakitam-gis/sakitam-map.svg)](https://greenkeeper.io/)
 
 ## 下载
 
